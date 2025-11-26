@@ -25,8 +25,20 @@ using AcCoreAp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
  */
 namespace AutoCAD_2022_Plugin_Demo
 {
+    /*
+     * 在Commands这个类中自定义命令
+     */
     public class Commands
     {
+        /*
+         * [CommandMethod("TEST")] 是 Autodesk AutoCAD .NET API 中的一个特性（Attribute），
+         * 用来将一个方法标记为可在AutoCAD命令行中直接调用的命令
+         * 
+         * 特性和它所修饰的成员之间不能有其他代码或成员隔开
+         * 
+         * 方法的签名必须是public static void 方法名()
+         * 
+         */
         [CommandMethod("TEST")]
         public static void Test()
         {

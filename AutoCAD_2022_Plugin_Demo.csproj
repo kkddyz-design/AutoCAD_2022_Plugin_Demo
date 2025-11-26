@@ -3,7 +3,18 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <!-- 
+		所生成项目的处理器架构“MSIL”与引用“AcDbMgd”的处理器架构“AMD64”不匹配。
+		这种不匹配可能会导致运行时失败。请考虑通过配置管理器更改您的项目的目标处理器架构，
+		以使您的项目与引用间的处理器架构保持一致，或者为引用关联一个与您的项目的目标处理器架构相符的处理器架构。
+		
+		这个提示是项目编译的 “处理器架构” 不匹配导致的警告
+		AutoCAD 从 2016 版本开始只支持 64 位系统，对应的 AcDbMgd.dll 等库都是 64 位（AMD64）架构的。
+		而你的项目默认选了 “Any CPU”（MSIL），编译时会和 64 位库产生架构冲突警告
+		这种架构不匹配，可能导致程序运行时崩溃（比如 32 位 / 64 位代码混用时的兼容性问题）
+		
+	-->
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <ProjectGuid>{69618CAE-E4F6-8CC1-B9A6-DA766FCC70E0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -25,6 +36,7 @@
     <!-- Change the path to the installation folder of the  targeted AutoCAD version -->
     <StartProgram>C:\Program Files\Autodesk\AutoCAD 2022\acad.exe</StartProgram>
     <StartArguments>/nologo /b "start.scr"</StartArguments>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +45,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <!-- Change the paths to the targeted AutoCAD libraries -->
@@ -58,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="DrawDemo\LineDemo.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -65,6 +79,9 @@
     <None Include="start.scr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
