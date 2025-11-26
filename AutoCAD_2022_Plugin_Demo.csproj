@@ -71,7 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="DrawDemo\LineDemo.cs" />
+    <Compile Include="EntityDemo\EntityTools.cs" />
+    <Compile Include="EntityDemo\GeometryTools.cs" />
+    <Compile Include="EntityDemo\EntityDemo.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
