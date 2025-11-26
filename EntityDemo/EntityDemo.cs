@@ -1,5 +1,5 @@
 ﻿/*
- * 学习直线绘制
+ * 学习图形绘制 即Entity对象的操作
  */
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -17,6 +17,8 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
 
     public class EntityDemo
     {
+
+        // =================================直线部分==============================================
         /*
          * 插入一条直线/图形
          */
@@ -101,7 +103,45 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
             }
         }
 
+        /*
+         * 使用AddLine添加直线
+         */
+        [CommandMethod("LineDemo3")]
+        public static void LineDemo3()
+        {
+            Point3d p1 = new Point3d(0, 0, 0);
+            Point3d p2 = new Point3d(100, 0, 0);
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
+            // 两点绘制直线
+            ObjectId objectId = db.AddLineToModelSpace(p1,p2);
+
+            if (objectId.IsValid)
+            {
+                doc.Editor.WriteMessage($"成功创建直线，ID为：{objectId}\n");
+            }
+            else
+            {
+                doc.Editor.WriteMessage($"创建直线{objectId}失败！\n");
+            }
+
+            // 角度60°长度100,绘制直线
+            objectId = db.AddLineToModelSpace(p1,100,240 );
+
+            if (objectId.IsValid)
+            {
+                doc.Editor.WriteMessage($"成功创建直线，ID为：{objectId}\n");
+            }
+            else
+            {
+                doc.Editor.WriteMessage($"创建直线{objectId}失败！\n");
+            }
+        }
+
+
+        // =================================================================================
+
     }
-
-
 }

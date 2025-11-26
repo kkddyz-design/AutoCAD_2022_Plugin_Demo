@@ -1,9 +1,8 @@
 ﻿/*
- * 将图形绘制需要的方法封装到这个类中
- * 
- * 并通过this扩展AutoCAD原有类
+ * 封装Entity绘制函数，并通过this扩展AutoCAD原有类
  */
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 using System;
 
 namespace AutoCAD_2022_Plugin_Demo.DrawDemo
@@ -162,6 +161,24 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
         }
 
         // ======================基于上面两个AddEntity方法====================================================
+
+        /*
+         * DB扩展添加直线命令 参数：startPoint，endPoint
+         */
+        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, Point3d endPoint)
+        {
+            return AddEnityToModelSpace(db, new Line(startPoint, endPoint));
+        }
+
+        /*
+         * DB扩展添加直线命令 参数：startPoint，length，degree
+         */
+        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, Double length, Double degree)
+        {
+            // 通过startPoint,length,degree计算endPoint
+            Point3d endPoint = startPoint.GetEndPoint(length, degree);
+            return AddLineToModelSpace(db, startPoint, endPoint);
+        }
 
 
     }
