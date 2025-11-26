@@ -129,7 +129,7 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                     BlockTableRecord btr = (BlockTableRecord)trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
 
                     // 遍历所有传入的实体
-                    for (int i = 0;i < entitys.Length; i++)
+                    for (int i = 0; i < entitys.Length; i++)
                     {
                         Entity entity = entitys[i];
                         if (entity != null)
@@ -141,7 +141,8 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                             // 记录当前实体的 ObjectId
                             objectIds[i] = entity.ObjectId;
                             Console.WriteLine($"Entity:{objectIds[i]}已成功创建！");
-                        } else
+                        }
+                        else
                         {
                             // 如果传入的实体为 null，存储一个无效的 ObjectId
                             objectIds[i] = ObjectId.Null;
@@ -173,13 +174,49 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
         /*
          * DB扩展添加直线命令 参数：startPoint，length，degree
          */
-        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, Double length, Double degree)
+        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, double length, double degree)
         {
             // 通过startPoint,length,degree计算endPoint
             Point3d endPoint = startPoint.GetEndPoint(length, degree);
             return AddLineToModelSpace(db, startPoint, endPoint);
         }
 
+
+        public static ObjectId AddArcToModeSpace(this Database db, Point3d startPoint, Point3d midPoint, Point3d endPoint)
+        {
+            ObjectId objectId = ObjectId.Null;
+
+            if (startPoint.AreCollinear(midPoint, endPoint))
+            {
+                return objectId;
+            }
+            else
+            {
+                // CircularArc3d通过三点计算圆弧的圆心,半径,起始终止弧度
+                CircularArc3d cArc = new CircularArc3d(startPoint, midPoint, endPoint);
+
+                // 如何通过点计算StartAngle,EndAngle?? 借助Vector3D(向量)
+                Point3d center = cArc.Center;
+
+                // 获取center到圆弧端点的向量
+                Vector3d startVector = center.GetVectorTo(startPoint);
+                Vector3d endVector = center.GetVectorTo(endPoint);
+                // xVector X轴上的单位向量
+                Vector3d xVector = new Vector3d(1, 0, 0);
+
+                // 通过GetAngleTo得到两个向量之间的夹角
+                // double startAngle = xVector.GetAngleTo(startVector);
+                // double endAngle = xVector.GetAngleTo(endVector);
+                // startAngle == cArc.StartAngle ; EndAngle ==  cArc.EndAngle
+
+                // 将数据层和工具层分开,Arc内部只需要和db交互的数据,和基于这些数据的函数
+                Arc arc = new Arc(cArc.Center, cArc.Radius, cArc.StartAngle, cArc.EndAngle);
+
+                // 将圆弧写入db
+                db.AddEnityToModelSpace(arc);
+            }
+            return objectId;
+        }
 
     }
 

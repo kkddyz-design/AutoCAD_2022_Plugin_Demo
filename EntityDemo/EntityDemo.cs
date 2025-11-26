@@ -18,7 +18,7 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
     public class EntityDemo
     {
 
-        // =================================直线部分==============================================
+        // =================================绘制直线==============================================
         /*
          * 插入一条直线/图形
          */
@@ -141,7 +141,52 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
         }
 
 
-        // =================================================================================
+        // ================================绘制圆弧===========================================
 
+        // 创建圆弧对象 方式1：圆心+半径+起始弧度+终止弧度
+        [CommandMethod("ArcDemo1")]
+        public static void ArcDemo1()
+        {
+
+            // 获取数据源
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
+
+            
+            // StartAngle使用弧度制 圆弧绘制沿逆时针,因此StartAngle(负数)必须小于EndAngle
+            Arc arc1 = new Arc();
+            arc1.Center = new Point3d(0, 0, 0); // 中心
+            arc1.Radius = 100;                  // 半径
+            arc1.StartAngle = -Math.PI / 4;     // 起始弧度 
+            arc1.EndAngle = Math.PI / 4;       //  终止弧度
+
+            double startDegree = -45;
+            double endDegree = 45;
+            Arc arc2 = new Arc(new Point3d(200, 200, 0), 100, startDegree.DegreeToAngle(), endDegree.DegreeToAngle());
+
+
+            // 将圆弧写入db
+            db.AddEnityToModelSpace(arc1);
+            db.AddEnityToModelSpace(arc2);
+        }
+
+        // 三点画圆
+        [CommandMethod("ArcDemo2")]
+        public static void ArcDemo2()
+        {
+
+            // 获取数据源
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
+
+            // 三点必须不共线
+            Point3d startPoint = new Point3d(100, 100, 0);
+            Point3d midPoint = new Point3d(120, 120, 0);
+            Point3d endPoint = new Point3d(150, 150, 0);
+
+           db.AddArcToModeSpace(startPoint, midPoint, endPoint);
+        }
     }
 }
