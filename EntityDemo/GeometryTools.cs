@@ -48,5 +48,37 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                 return false;
             }
         }
+
+        /*
+         * 获取向量角度
+         */
+        public static double GetAngleToXAxis(this Point3d startPoint, Point3d endPoint)
+        {
+            //声明一个与X轴平行的向量
+            Vector3d temp = new Vector3d(1, 0, 0);
+            //获取起点到终点的向量
+            Vector3d VsToe = startPoint.GetVectorTo(endPoint);
+            return VsToe.Y > 0 ? temp.GetAngleTo(VsToe) : -temp.GetAngleTo(VsToe);
+        }
+
+        /*
+         * 获取两点之间的距离
+         */
+        public static double GetDistanceBetweenTwoPoint(this Point3d point1, Point3d point2)
+        {
+            return Math.Sqrt((point1.X - point2.X) * (point1.X - point2.X) + (point1.Y - point2.Y) * (point1.Y - point2.Y) + (point1.Z - point2.Z) * (point1.Z - point2.Z));
+
+        }
+
+
+ 
+        /*
+         * 获取两点的中心点
+         */
+
+        public static Point3d GetCenterPointBetweenTwoPoint(this Point3d Point1, Point3d point2)
+        {
+            return new Point3d((Point1.X + point2.X) / 2, (Point1.Y + point2.Y) / 2, (Point1.Z + point2.Z) / 2);
+        }
     }
 }
