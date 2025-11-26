@@ -48,6 +48,5 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                 return false;
             }
         }
-
     }
 }

@@ -181,7 +181,35 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
             return AddLineToModelSpace(db, startPoint, endPoint);
         }
 
+        /*
+         * 绘制圆弧 参数： center, radius, startDegree, endDegree
+         */
+        public static ObjectId AddArcToModelSpace(this Database db, Point3d center, double radius, double startDegree, double endDegree)
+        {
+            return db.AddEnityToModelSpace(new Arc(center, radius, startDegree.DegreeToAngle(), endDegree.DegreeToAngle()));
+        }
 
+
+
+
+        /* 
+         * 绘制圆弧 参数： center, startPoint, degree
+         */
+        public static ObjectId AddArcToModelSpace(this Database db, Point3d center, Point3d startPoint, double degree)
+        {
+            //获取半径
+            double radius = center.GetDistanceBetweenTwoPoint(startPoint);
+            //获取起点角度
+            double startAngle = center.GetAngleToXAxis(startPoint);
+            //声明圆弧对象
+            Arc arc = new Arc(center, radius, startAngle, startAngle + degree.DegreeToAngle());
+            return db.AddEnityToModelSpace(arc);
+
+        }
+
+        /* 
+         * 绘制圆弧 参数： startPoint,midPoint,endPoint                                  
+         */
         public static ObjectId AddArcToModeSpace(this Database db, Point3d startPoint, Point3d midPoint, Point3d endPoint)
         {
             ObjectId objectId = ObjectId.Null;
