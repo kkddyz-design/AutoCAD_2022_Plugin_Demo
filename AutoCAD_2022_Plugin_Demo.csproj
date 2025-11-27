@@ -71,9 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="EntityDemo\EntityTools.cs" />
+    <Compile Include="EntityDemo\add\AddEntityTools.cs" />
     <Compile Include="EntityDemo\GeometryTools.cs" />
-    <Compile Include="EntityDemo\EntityDemo.cs" />
+    <Compile Include="EntityDemo\add\AddEntityDemo.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -81,6 +81,9 @@
     <None Include="start.scr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="EntityDemo\modify\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,7 +1,7 @@
 ﻿/*
  * 学习图形绘制 即Entity对象的操作
  */
-using AutoCAD_2022_Plugin_Demo.EntityDemo;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.add;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
@@ -12,13 +12,13 @@ using System;
  * 一般在AssemblyInfo.cs中配置特性
  * 这里为了方便阅读,设置在namespace上面
  */
-[assembly: CommandClass(typeof(EntityDemo))]
+[assembly: CommandClass(typeof(AddEntityDemo))]
 
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo
+namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
 {
 
-    public class EntityDemo
+    public class AddEntityDemo
     {
 
         private static Document doc = Application.DocumentManager.MdiActiveDocument; //获取当前激活的绘图窗口（文档）
