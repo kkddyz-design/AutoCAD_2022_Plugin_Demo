@@ -1,17 +1,15 @@
 ﻿/*
  *  AutoCAD .NET 插件（.dll） 的初始化逻辑，核心作用是：在插件加载时，向 AutoCAD 命令行输出一条 “插件已加载”的提示信息。
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 /*
  * AutoCAD .NET API 的核心类，封装了 AutoCAD 应用程序的所有功能（如文档管理、命令执行、事件触发等）
  */
@@ -46,7 +44,6 @@ namespace AutoCAD_2022_Plugin_Demo
             }
         }
 
-        public void Terminate()
-        { }
+        public void Terminate() { }
     }
 }

@@ -1,19 +1,19 @@
 ﻿/*
  * 提供几何相关工具方法
  */
-using Autodesk.AutoCAD.Geometry;
 using System;
+using Autodesk.AutoCAD.Geometry;
 
 namespace AutoCAD_2022_Plugin_Demo.DrawDemo
 {
     public static class GeometryTools
     {
-
-        // 扩展double实现角度转换弧度 
+        // 扩展double实现角度转换弧度
         public static double DegreeToAngle(this double degree)
         {
             return degree * Math.PI / 180;
         }
+
         // 扩展double实现弧度转换角度
         public static double AngleToDegree(this double angle)
         {
@@ -25,7 +25,6 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
          */
         public static Point3d GetEndPoint(this Point3d startPoint, double length, double degree)
         {
-
             double X = startPoint.X + (length * Math.Cos(degree.DegreeToAngle()));
             double Y = startPoint.Y + (length * Math.Sin(degree.DegreeToAngle()));
             Point3d endPoint = new Point3d(X, Y, 0);
@@ -35,7 +34,11 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
         /*
          * 判断三点是否共线
          */
-        public static bool AreCollinear(this Point3d firstPoint, Point3d secondPoint, Point3d thirdPoint)
+        public static bool AreCollinear(
+            this Point3d firstPoint,
+            Point3d secondPoint,
+            Point3d thirdPoint
+        )
         {
             Vector3d v21 = secondPoint.GetVectorTo(firstPoint);
             Vector3d v23 = secondPoint.GetVectorTo(thirdPoint);
@@ -66,19 +69,24 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
          */
         public static double GetDistanceBetweenTwoPoint(this Point3d point1, Point3d point2)
         {
-            return Math.Sqrt((point1.X - point2.X) * (point1.X - point2.X) + (point1.Y - point2.Y) * (point1.Y - point2.Y) + (point1.Z - point2.Z) * (point1.Z - point2.Z));
-
+            return Math.Sqrt(
+                (point1.X - point2.X) * (point1.X - point2.X)
+                    + (point1.Y - point2.Y) * (point1.Y - point2.Y)
+                    + (point1.Z - point2.Z) * (point1.Z - point2.Z)
+            );
         }
 
-
- 
         /*
          * 获取两点的中心点
          */
 
         public static Point3d GetCenterPointBetweenTwoPoint(this Point3d Point1, Point3d point2)
         {
-            return new Point3d((Point1.X + point2.X) / 2, (Point1.Y + point2.Y) / 2, (Point1.Z + point2.Z) / 2);
+            return new Point3d(
+                (Point1.X + point2.X) / 2,
+                (Point1.Y + point2.Y) / 2,
+                (Point1.Z + point2.Z) / 2
+            );
         }
     }
 }

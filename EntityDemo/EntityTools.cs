@@ -1,16 +1,15 @@
 ﻿/*
  * 封装Entity绘制函数，并通过this扩展AutoCAD原有类
  */
+using System;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
-using System;
 
 namespace AutoCAD_2022_Plugin_Demo.DrawDemo
 {
     // 扩展方法必须在非泛型静态类中定义
     public static class EntityTools
     {
-
         /*
          * 在静态方法的第一个参数前加上 this 关键字，表明该方法是对这个参数类型的扩展。
          * 核心作用： 让你能够为一个已有的类（即使这个类是密封的 sealed，或者你没有它的源代码）添加新的方法，
@@ -18,17 +17,16 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
          * 这在以下场景中特别有用：
          * 1. 扩展第三方库的类：比如 AutoCAD 的 Database、Entity 等类，你无法修改它们的源代码，但可以通过扩展方法为它们添加自定义的功能。
          * 2. 为密封类添加方法：对于标记为 sealed 的类，无法继承，扩展方法是唯一的 “添加” 方法的途径。
-         * 
+         *
          * 这是一个语法糖：
          * 对于扩展方法，你可以像调用Database类的实例方法一样来调用它：
          * 编译器在编译时会自动将其转换为静态方法的调用，但从代码书写和阅读的角度来看，它更像是db对象自身的方法。
-         * 
+         *
          * 总结：this 的作用是：将ddEnityToModelSpace 这个静态方法，伪装成 Database 类的一个实例方法，从而让代码的调用方式更加自然
-         * 
+         *
          */
         public static ObjectId AddEnityToModelSpace(this Database db, Entity entity)
         {
-
             /*
              * 开启事务处理
              * 在 AutoCAD 中，对数据库的所有修改操作都应该在事务中进行
@@ -49,7 +47,8 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                     // 打开块表记录
                     //  bt[BlockTableRecord.ModelSpace] 通过名称 "ModelSpace" 从块表中获取模型空间的记录
                     // 模型空间是我们通常绘图的区域，它本身也是一个特殊的块
-                    BlockTableRecord btr = (BlockTableRecord)trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
+                    BlockTableRecord btr = (BlockTableRecord)
+                        trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
 
                     // 将直线加入到块表记录
                     // 这一步是将我们在内存中创建的直线，逻辑上“放入”模型空间
@@ -75,40 +74,38 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
             }
         }
 
-
         /*
          * params 是 C# 中的一个关键字，它允许方法接收可变数量的参数，这些参数会被自动封装成一个数组。
          * 没有 params 的情况下，如果你想让方法支持添加 1 个、2 个或多个实体，你可能需要编写多个重载方法：
          * 这显然非常繁琐且不灵活。
-         * 
+         *
          * params 的使用方式：
          *  1.传入单个实体
          *  Line line = new Line(...);
          *  db.AddEnityToModelSpace(line);
-         * 
+         *
          *  2.传入多个实体，用逗号分隔
          *  Line line1 = new Line(...);
          *  Circle circle = new Circle(...);
          *  Text text = new Text(...);
          *  db.AddEnityToModelSpace(line1, circle, text);
-         *  
-         *  3.传入一个实体数组 
+         *
+         *  3.传入一个实体数组
          *  Entity[] entities = new Entity[]
          *  { new Line(...),new Circle(...),new Text(...)};
          *  db.AddEnityToModelSpace(entities);
-         *  
+         *
          *  编译器会自动将前两种方式（传入单个或多个实体）转换为第三种方式
-         *  
+         *
          *  使用 params 的注意事项：
          *  1.params 参数必须是方法的最后一个参数。
          *  2.一个方法只能有一个 params 参数。
-         *  
+         *
          *   方法内部如何处理entitys：
          *   在方法内部，entitys 参数的类型是 Entity[]（一个 Entity 数组）。你可以像处理普通数组一样遍历它
          */
         public static ObjectId[] AddEnityToModelSpace(this Database db, params Entity[] entitys)
         {
-
             // 非空检查
             if (entitys == null || entitys.Length == 0)
             {
@@ -126,7 +123,8 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                     BlockTable bt = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
 
                     // 打开模型空间块表记录
-                    BlockTableRecord btr = (BlockTableRecord)trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
+                    BlockTableRecord btr = (BlockTableRecord)
+                        trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
 
                     // 遍历所有传入的实体
                     for (int i = 0; i < entitys.Length; i++)
@@ -149,7 +147,6 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
                         }
                     }
                     trans.Commit();
-
                 }
                 catch (Exception ex)
                 {
@@ -161,12 +158,16 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
             }
         }
 
-        // ======================基于上面两个AddEntity方法====================================================
+        // ======================基于上面两个AddEntity方法扩展====================================================
 
         /*
          * DB扩展添加直线命令 参数：startPoint，endPoint
          */
-        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, Point3d endPoint)
+        public static ObjectId AddLineToModelSpace(
+            this Database db,
+            Point3d startPoint,
+            Point3d endPoint
+        )
         {
             return AddEnityToModelSpace(db, new Line(startPoint, endPoint));
         }
@@ -174,7 +175,12 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
         /*
          * DB扩展添加直线命令 参数：startPoint，length，degree
          */
-        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, double length, double degree)
+        public static ObjectId AddLineToModelSpace(
+            this Database db,
+            Point3d startPoint,
+            double length,
+            double degree
+        )
         {
             // 通过startPoint,length,degree计算endPoint
             Point3d endPoint = startPoint.GetEndPoint(length, degree);
@@ -184,18 +190,28 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
         /*
          * 绘制圆弧 参数： center, radius, startDegree, endDegree
          */
-        public static ObjectId AddArcToModelSpace(this Database db, Point3d center, double radius, double startDegree, double endDegree)
+        public static ObjectId AddArcToModelSpace(
+            this Database db,
+            Point3d center,
+            double radius,
+            double startDegree,
+            double endDegree
+        )
         {
-            return db.AddEnityToModelSpace(new Arc(center, radius, startDegree.DegreeToAngle(), endDegree.DegreeToAngle()));
+            return db.AddEnityToModelSpace(
+                new Arc(center, radius, startDegree.DegreeToAngle(), endDegree.DegreeToAngle())
+            );
         }
 
-
-
-
-        /* 
+        /*
          * 绘制圆弧 参数： center, startPoint, degree
          */
-        public static ObjectId AddArcToModelSpace(this Database db, Point3d center, Point3d startPoint, double degree)
+        public static ObjectId AddArcToModelSpace(
+            this Database db,
+            Point3d center,
+            Point3d startPoint,
+            double degree
+        )
         {
             //获取半径
             double radius = center.GetDistanceBetweenTwoPoint(startPoint);
@@ -203,14 +219,18 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
             double startAngle = center.GetAngleToXAxis(startPoint);
             //声明圆弧对象
             Arc arc = new Arc(center, radius, startAngle, startAngle + degree.DegreeToAngle());
-            return db.AddEnityToModelSpace(arc);
-
+            return AddEnityToModelSpace(db, arc);
         }
 
-        /* 
-         * 绘制圆弧 参数： startPoint,midPoint,endPoint                                  
+        /*
+         * 绘制圆弧 参数： startPoint,midPoint,endPoint
          */
-        public static ObjectId AddArcToModeSpace(this Database db, Point3d startPoint, Point3d midPoint, Point3d endPoint)
+        public static ObjectId AddArcToModelSpace(
+            this Database db,
+            Point3d startPoint,
+            Point3d midPoint,
+            Point3d endPoint
+        )
         {
             ObjectId objectId = ObjectId.Null;
 
@@ -246,6 +266,54 @@ namespace AutoCAD_2022_Plugin_Demo.DrawDemo
             return objectId;
         }
 
-    }
+        /*
+         * 绘制圆
+         */
+        public static ObjectId AddCircleToModelSpace(
+            this Database db,
+            Point3d center,
+            double radius
+        )
+        {
+            //
+            Circle c = new Circle(center, new Vector3d(0, 0, 1), radius);
+            return AddEnityToModelSpace(db, c);
+        }
 
+        /*
+         * 两点绘制圆
+         */
+        public static ObjectId AddCircleToModelSpace(
+            this Database db,
+            Point3d point1,
+            Point3d point2
+        )
+        {
+            //获取中心点
+            Point3d center = point1.GetCenterPointBetweenTwoPoint(point2);
+            //获取半径
+            double radius = point1.GetDistanceBetweenTwoPoint(center);
+            return AddCircleToModelSpace(db, center, radius);
+        }
+
+        /*
+         * 三点绘制圆
+         */
+        public static ObjectId AddCircleToModelSpace(
+            this Database db,
+            Point3d point1,
+            Point3d point2,
+            Point3d point3
+        )
+        {
+            //先判断三点是否在同一条直线上
+            if (point1.AreCollinear(point2, point3))
+            {
+                return ObjectId.Null;
+            }
+            //声明几何类的CircularArc3d对象
+            CircularArc3d cArc = new CircularArc3d(point1, point2, point3);
+            return db.AddCircleToModelSpace(cArc.Center, cArc.Radius);
+        }
+    }
 }
