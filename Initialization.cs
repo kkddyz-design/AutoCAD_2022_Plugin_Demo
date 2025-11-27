@@ -1,15 +1,9 @@
 ﻿/*
  *  AutoCAD .NET 插件（.dll） 的初始化逻辑，核心作用是：在插件加载时，向 AutoCAD 命令行输出一条 “插件已加载”的提示信息。
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
+using System;
+using System.Linq;
 /*
  * AutoCAD .NET API 的核心类，封装了 AutoCAD 应用程序的所有功能（如文档管理、命令执行、事件触发等）
  */
@@ -23,20 +17,11 @@ namespace AutoCAD_2022_Plugin_Demo
      */
     public class Initialization : IExtensionApplication
     {
-        /*
-         * Initialize 是 IExtensionApplication 的 加载回调方法：AutoCAD 加载插件时，会立即执行这里的代码（相当于插件的 “启动逻辑”）。
-         * AcCoreAp.Idle += OnIdle：给 AutoCAD 应用程序的 Idle 事件绑定一个回调函数 OnIdle。
-         */
-        public void Initialize()
-        {
-            AcCoreAp.Idle += OnIdle;
-        }
-
         private void OnIdle(object sender, EventArgs e)
         {
             // 获取 AutoCAD 中当前激活的绘图文档（即用户正在操作的 .dwg 文件）
             var doc = AcCoreAp.DocumentManager.MdiActiveDocument;
-            if (doc != null)
+            if(doc != null)
             {
                 // 关键步骤！Idle 事件会频繁触发（只要 AutoCAD 空闲），这里执行一次后立即解绑，避免重复输出提示。
                 AcCoreAp.Idle -= OnIdle;
@@ -44,6 +29,14 @@ namespace AutoCAD_2022_Plugin_Demo
             }
         }
 
-        public void Terminate() { }
+        /*
+         * Initialize 是 IExtensionApplication 的 加载回调方法：AutoCAD 加载插件时，会立即执行这里的代码（相当于插件的 “启动逻辑”）。
+         * AcCoreAp.Idle += OnIdle：给 AutoCAD 应用程序的 Idle 事件绑定一个回调函数 OnIdle。
+         */
+        public void Initialize() { AcCoreAp.Idle += OnIdle; }
+
+        public void Terminate()
+        {
+        }
     }
 }
