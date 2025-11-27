@@ -13,7 +13,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
     public static class EntityTools
     {
         /*
-         * 绘制圆弧 参数： center, startPoint, degree
+         * 绘制圆弧 参数： center, leftDown, degree
          */
 
         public static ObjectId AddArcToModelSpace(
@@ -35,14 +35,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         }
 
         /*
-         * 绘制圆弧 参数： startPoint,midPoint,endPoint
+         * 绘制圆弧 参数： leftDown,midPoint,rightUp
          */
-        public static ObjectId AddArcToModelSpace(
-            this Database db,
-            Point3d startPoint,
-            Point3d midPoint,
-            Point3d endPoint
-        )
+        public static ObjectId AddArcToModelSpace(this Database db, Point3d startPoint, Point3d midPoint, Point3d endPoint)
         {
             ObjectId objectId = ObjectId.Null;
 
@@ -98,11 +93,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         /*
          * 绘制圆
          */
-        public static ObjectId AddCircleToModelSpace(
-            this Database db,
-            Point3d center,
-            double radius
-        )
+        public static ObjectId AddCircleToModelSpace(this Database db, Point3d center, double radius)
         {
             Circle c = new Circle(center, new Vector3d(0, 0, 1), radius);
             return AddEntityToModelSpace(db, c);
@@ -111,11 +102,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         /*
          * 两点绘制圆
          */
-        public static ObjectId AddCircleToModelSpace(
-            this Database db,
-            Point3d point1,
-            Point3d point2
-        )
+        public static ObjectId AddCircleToModelSpace(this Database db, Point3d point1, Point3d point2)
         {
             // 获取中心点
             Point3d center = point1.GetCenterPointBetweenTwoPoint(point2);
@@ -128,12 +115,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         /*
          * 三点绘制圆
          */
-        public static ObjectId AddCircleToModelSpace(
-            this Database db,
-            Point3d point1,
-            Point3d point2,
-            Point3d point3
-        )
+        public static ObjectId AddCircleToModelSpace(this Database db, Point3d point1, Point3d point2, Point3d point3)
         {
             // 先判断三点是否在同一条直线上
             if(point1.AreCollinear(point2, point3))
@@ -301,30 +283,110 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 
 
         /*
-         * DB扩展添加直线命令 参数：startPoint，endPoint
+         * DB扩展添加直线命令 参数：leftDown，rightUp
          */
-        public static ObjectId AddLineToModelSpace(
-            this Database db,
-            Point3d startPoint,
-            Point3d endPoint
-        )
+        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, Point3d endPoint)
         {
             return AddEntityToModelSpace(db, new Line(startPoint, endPoint));
         }
 
         /*
-         * DB扩展添加直线命令 参数：startPoint，length，degree
+         * DB扩展添加直线命令 参数：leftDown，length，degree
          */
-        public static ObjectId AddLineToModelSpace(
-            this Database db,
-            Point3d startPoint,
-            double length,
-            double degree
-        )
+        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, double length, double degree)
         {
             // 通过startPoint,length,degree计算endPoint
             Point3d endPoint = startPoint.GetEndPoint(length, degree);
             return AddLineToModelSpace(db, startPoint, endPoint);
+        }
+
+        /*
+         * 绘制多边形
+         */
+        public static ObjectId AddPolygonToModelSpace(this Database db, Point2d center, double radius, int sideNum, double startAngle)
+        {
+            if(sideNum < 3)
+            {
+                return ObjectId.Null;
+            }
+
+            Polyline pl = new Polyline();
+
+            // 循环计算顶点坐标
+            for(int i = 0; i < sideNum; i++)
+            {
+                // 计算当前顶点对应的角度（弧度）
+                // - 2 * Math.PI 是一个完整的圆周角
+                // - 除以 sideNum 得到每个顶点之间的角度间隔
+                // - 乘以 i 得到当前顶点的角度偏移量
+                // - i = 0, angle = startAngle = 90°
+                double angle = startAngle + (i * 2 * Math.PI / sideNum);
+
+                // 使用三角函数计算顶点在笛卡尔坐标系中的坐标
+                double x = center.X + radius * Math.Cos(angle);
+                double y = center.Y + radius * Math.Sin(angle);
+
+                // 创建Point2d对象
+                Point2d vertex = new Point2d(x, y);
+                pl.AddVertexAt(i, vertex, 0, 0, 0);
+            }
+
+            pl.Closed = true;
+            return AddEntityToModelSpace(db, pl);
+        }
+
+
+        /*
+         * 绘制折线多段线 ： bulge = 0，宽度固定
+         */
+        public static ObjectId AddPolylineToModelSpace(this Database db, bool isClosed, double width, params Point2d[] vertices)
+        {
+            if(vertices == null || vertices.Length < 0)
+            {
+                return ObjectId.Null;
+            }
+
+            Polyline pl = new Polyline();
+            for(int i = 0; i < vertices.Length; i++)
+            {
+                pl.AddVertexAt(i, vertices[i], 0, 0, 0);
+            }
+
+            pl.Closed = isClosed;    // 是否闭合
+            pl.ConstantWidth = width;// 多段线宽度
+
+            return AddEntityToModelSpace(db, pl);
+        }
+
+
+        /*
+         * 2点绘制矩形
+         * 本质：通过多段线绘制直线
+         * X1,Y2 ----------------- X2,Y2
+         * |                         |
+         * |                         |           
+         * X1,Y1 ----------------- X2,Y1
+         */
+        public static ObjectId AddRectangleToModelSpace(this Database db, Point2d leftDown, Point2d rightUp)
+        {
+            double X1 = leftDown.X;
+            double Y1 = leftDown.Y;
+            double X2 = rightUp.X;
+            double Y2 = rightUp.Y;
+
+            Point2d leftUp = new Point2d(X1, Y2);
+            Point2d rightDown = new Point2d(X2, Y1);
+
+            Polyline pl = new Polyline();
+            pl.AddVertexAt(0, leftDown, 0, 0, 0);
+            pl.AddVertexAt(1, rightDown, 0, 0, 0);
+            pl.AddVertexAt(2, rightUp, 0, 0, 0);
+            pl.AddVertexAt(3, leftUp, 0, 0, 0);
+
+            // 一定要设置闭合,不然虽然顶点收尾重合了,但是不会产生闭合曲线
+            pl.Closed = true;
+
+            return AddEntityToModelSpace(db, pl);
         }
 
     }

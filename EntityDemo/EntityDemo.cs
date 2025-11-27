@@ -21,8 +21,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
     public class EntityDemo
     {
 
-        public static Document doc = Application.DocumentManager.MdiActiveDocument; //获取当前激活的绘图窗口（文档）
-        public static Database db = doc.Database; // 图形数据库对象
+        private static Document doc = Application.DocumentManager.MdiActiveDocument; //获取当前激活的绘图窗口（文档）
+        private static Database db = doc.Database; // 图形数据库对象
 
 
         // 创建圆弧对象 方式1：圆心+半径+起始弧度+终止弧度
@@ -192,14 +192,80 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
+        /*
+         * 插入多边形
+         */
+        [CommandMethod("PolygonDemo1")]
+        public static void PolygonDemo1()
+        {
+            // 多边形顶点从90°开始
+            db.AddPolygonToModelSpace(new Point2d(0, 0), 100, 6, Math.PI / 2);
+            db.AddPolygonToModelSpace(new Point2d(200, 200), 100, 3, Math.PI / 2);
+        }
+
 
         /*
-         * 插入多段线
+         * 插入多段线 - 三角
          */
         [CommandMethod("PolyLineDemo1")]
         public static void PolyLineDemo1()
         {
+            // Polyline是二维,只能使用Point2D作为顶点
+
+            Point2d p1 = new Point2d(100, 100);
+            Point2d p2 = new Point2d(200, 100);
+            Point2d p3 = new Point2d(200, 200);
+
+            db.AddPolylineToModelSpace(true, 10, p1, p2, p3);
+        }
+
+        /*
+         * 插入圆弧多段线 - 槽口
+         */
+        [CommandMethod("PolyLineDemo2")]
+        public static void PolyLineDemo2()
+        {
+            // 1. 定义顶点（顺序：下直线右端点→右半圆→上直线右端点→左半圆→下直线左端点）
+            // 圆角矩形的尺寸：宽度300（400-100），高度100（200-100），半圆直径=高度（100），半径=50
+            Point2d pRightBottom = new Point2d(400, 100);  // 下直线右端点
+            Point2d pRightTop = new Point2d(400, 200);     // 上直线右端点
+            Point2d pLeftTop = new Point2d(100, 200);      // 上直线左端点
+            Point2d pLeftBottom = new Point2d(100, 100);   // 下直线左端点
+
+            // 2. 创建多段线
             Polyline pl = new Polyline();
+            pl.SetDatabaseDefaults();
+
+            // 3. 按顺序添加顶点（关键：凸度值配合顶点方向） 一定先添加凸度为1的端点,按照下左->下右->上右->上左 最后没法通过闭合设置曲线
+            // 顶点1：下直线右端点 → 凸度=1（右半圆，向上凸）
+            pl.AddVertexAt(0, pRightBottom, 1, 0, 0);
+
+            // 顶点2：上直线右端点 → 凸度=0（上直线，水平向左）
+            pl.AddVertexAt(1, pRightTop, 0, 0, 0);
+
+            // 顶点3：上直线左端点 → 凸度=1（左半圆，向下凸）
+            pl.AddVertexAt(2, pLeftTop, 1, 0, 0);
+
+            // 顶点4：下直线左端点 → 凸度=0（下直线，水平向右）
+            pl.AddVertexAt(3, pLeftBottom, 0, 0, 0);
+
+            // 4. 闭合多段线（自动连接最后一个顶点和第一个顶点，形成下直线）
+            pl.Closed = true;
+
+            db.AddEntityToModelSpace(pl);
+        }
+
+
+        /*
+         * 加入矩形
+         */
+        [CommandMethod("RecDemo1")]
+        public static void RecDemo1()
+        {
+            Point2d leftDown = new Point2d(100, 100);
+            Point2d rightUp = new Point2d(400, 200);
+
+            db.AddRectangleToModelSpace(leftDown, rightUp);
         }
 
     }
