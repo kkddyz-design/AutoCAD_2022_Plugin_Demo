@@ -128,6 +128,77 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
             return db.AddCircleToModelSpace(cArc.Center, cArc.Radius);
         }
 
+
+        /*
+         * 绘制椭圆 - 两点
+         * 以这两个点的连线为 “轴”，自动计算长轴、短轴比例（ratio = 纵差/横差）
+         * 快速通过两个点 “大致” 画椭圆，但短轴由两点的纵横比决定（不够灵活）
+         */
+
+        public static ObjectId AddEllipseToModelSpace(this Database db, Point3d point1, Point3d point2)
+        {
+            // 椭圆的圆心
+            Point3d center = point1.GetCenterPointBetweenTwoPoint(point2);
+            double ratio = Math.Abs((point1.Y - point2.Y) / (point1.X - point2.X));
+            Vector3d majorVector = new Vector3d(Math.Abs((point1.X - point2.X)) / 2, 0, 0);
+
+            // 声明椭圆对象
+            Ellipse elli = new Ellipse(center, Vector3d.ZAxis, majorVector, ratio, 0, 2 * Math.PI);
+            return AddEntityToModelSpace(db, elli);
+        }
+
+
+        /*
+         * 绘制椭圆 - 	长轴两端点 + 短轴长度
+         * 
+         * 明确指定长轴的两个端点，再手动输入短轴长度，计算长短轴比例
+         * 需要精确控制长轴范围和短轴长度的场景（最常用）
+         */
+        public static ObjectId AddEllipseToModelSpace(
+            this Database db, 
+            Point3d majorPoint1,    // 长轴端点1
+            Point3d majorPoint2,    // 长轴端点2
+            double shortRadius      // 短轴长度
+        )
+        {
+            // 椭圆的圆心
+            Point3d center = majorPoint1.GetCenterPointBetweenTwoPoint(majorPoint2);
+
+            // 短轴与长轴的比
+            double ratio = 2 * shortRadius / majorPoint1.GetDistanceBetweenTwoPoint(majorPoint2);
+
+            // 长轴的向量
+            Vector3d majorAxis = majorPoint2.GetVectorTo(center);
+            Ellipse elli = new Ellipse(center, Vector3d.ZAxis, majorAxis, ratio, 0, 2 * Math.PI);
+
+            return AddEntityToModelSpace(db, elli);
+        }
+
+        /*
+         * 绘制椭圆 - 圆心 + 长轴半径 + 短轴半径 + 角度
+         * 直接指定圆心、长轴 / 短轴半径、长轴旋转角、椭圆弧的起止角
+         * 需要精确控制椭圆的 “位置、方向、弧度范围” 的场景（如画椭圆弧）
+         */
+        public static ObjectId AddEllipseToModelSpace(
+            this Database db,
+            Point3d center,
+            double majorRadius, // 长轴长度
+            double shortRadius, // 短轴长度
+            double degere,      // 长轴与X轴夹角
+            double startDegree, // 起始角度
+            double endDegree    // 终止角度
+        )
+        {
+            // 计算相关参数
+            double ratio = shortRadius / majorRadius;
+            Vector3d majorAxis = new Vector3d(majorRadius * Math.Cos(degere.DegreeToAngle()), majorRadius * Math.Sin(degere.DegreeToAngle()), 0);
+
+            // 声明椭圆对象
+            Ellipse elli = new Ellipse(center, Vector3d.ZAxis, majorAxis, ratio, startDegree.DegreeToAngle(), endDegree.DegreeToAngle());
+            return AddEntityToModelSpace(db, elli);
+        }
+
+
         /*
          * 在静态方法的第一个参数前加上 this 关键字，表明该方法是对这个参数类型的扩展。
          * 核心作用： 让你能够为一个已有的类（即使这个类是密封的 sealed，或者你没有它的源代码）添加新的方法，

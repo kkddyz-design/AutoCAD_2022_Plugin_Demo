@@ -2,12 +2,12 @@
  * 学习图形绘制 即Entity对象的操作
  */
 using AutoCAD_2022_Plugin_Demo.EntityDemo.add;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.other;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System;
-
 /*
  * 一般在AssemblyInfo.cs中配置特性
  * 这里为了方便阅读,设置在namespace上面
@@ -76,6 +76,26 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
                 new Point3d(270, 180, 0),
                 new Point3d(160, 240, 0)
             );
+        }
+
+        [CommandMethod("EllipseDemo")]
+        public void EllipseDemo()
+        {
+            // 声明图形数据库
+
+            Ellipse e2 = new Ellipse(new Point3d(100, 100, 0), Vector3d.ZAxis, new Vector3d(100, 0, 0), 5, 0, 2 * Math.PI);
+            db.AddEntityToModelSpace(e2);
+        }
+
+
+        [CommandMethod("HatchDemo")]
+        public void HatchDemo()
+        {
+            // 渐变填充
+            ObjectIdCollection objIds = new ObjectIdCollection();
+            objIds.Add(db.AddCircleToModelSpace(new Point3d(100, 100, 0), 100));
+            string hatchGradientName = HatchTools.HatchGradientName.gr_invcylinder;
+            db.HatchGradient(2, 6, HatchTools.HatchGradientName.gr_hemisperical, db.AddRectangleToModelSpace(new Point2d(100, 100), new Point2d(500, 300)));
         }
 
         /*

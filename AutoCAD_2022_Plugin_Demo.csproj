@@ -72,8 +72,9 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\add\AddEntityTools.cs" />
-    <Compile Include="EntityDemo\GeometryTools.cs" />
+    <Compile Include="EntityDemo\other\GeometryTools.cs" />
     <Compile Include="EntityDemo\add\AddEntityDemo.cs" />
+    <Compile Include="EntityDemo\other\HatchTools.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
