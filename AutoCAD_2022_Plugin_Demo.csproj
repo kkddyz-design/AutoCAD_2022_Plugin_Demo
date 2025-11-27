@@ -72,6 +72,8 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\add\AddEntityTools.cs" />
+    <Compile Include="EntityDemo\modify\ModifyEntityDemo.cs" />
+    <Compile Include="EntityDemo\modify\ModifyEntityTools.cs" />
     <Compile Include="EntityDemo\other\GeometryTools.cs" />
     <Compile Include="EntityDemo\add\AddEntityDemo.cs" />
     <Compile Include="EntityDemo\other\HatchTools.cs" />
@@ -83,9 +85,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="EntityDemo\modify\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
