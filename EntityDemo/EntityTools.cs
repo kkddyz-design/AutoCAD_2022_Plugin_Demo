@@ -5,21 +5,31 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
 
+
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 {
+
     // 扩展方法必须在非泛型静态类中定义
     public static class EntityTools
     {
         /*
          * 绘制圆弧 参数： center, startPoint, degree
          */
-        public static ObjectId AddArcToModelSpace(this Database db, Point3d center, Point3d startPoint, double degree)
+
+        public static ObjectId AddArcToModelSpace(
+            this Database db,
+            Point3d center,
+            Point3d startPoint,
+            double degree
+        )
         {
-            //获取半径
+            // 获取半径
             double radius = center.GetDistanceBetweenTwoPoint(startPoint);
-            //获取起点角度
+
+            // 获取起点角度
             double startAngle = center.GetAngleToXAxis(startPoint);
-            //声明圆弧对象
+
+            // 声明圆弧对象
             Arc arc = new Arc(center, radius, startAngle, startAngle + degree.DegreeToAngle());
             return AddEntityToModelSpace(db, arc);
         }
@@ -31,14 +41,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             this Database db,
             Point3d startPoint,
             Point3d midPoint,
-            Point3d endPoint)
+            Point3d endPoint
+        )
         {
             ObjectId objectId = ObjectId.Null;
 
             if(startPoint.AreCollinear(midPoint, endPoint))
             {
                 return objectId;
-            } else
+            }
+            else
             {
                 // CircularArc3d通过三点计算圆弧的圆心,半径,起始终止弧度
                 CircularArc3d cArc = new CircularArc3d(startPoint, midPoint, endPoint);
@@ -49,6 +61,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                 // 获取center到圆弧端点的向量
                 Vector3d startVector = center.GetVectorTo(startPoint);
                 Vector3d endVector = center.GetVectorTo(endPoint);
+
                 // xVector X轴上的单位向量
                 Vector3d xVector = new Vector3d(1, 0, 0);
 
@@ -74,18 +87,23 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             Point3d center,
             double radius,
             double startDegree,
-            double endDegree)
+            double endDegree
+        )
         {
             return db.AddEntityToModelSpace(
-                new Arc(center, radius, startDegree.DegreeToAngle(), endDegree.DegreeToAngle()));
+                new Arc(center, radius, startDegree.DegreeToAngle(), endDegree.DegreeToAngle())
+            );
         }
 
         /*
          * 绘制圆
          */
-        public static ObjectId AddCircleToModelSpace(this Database db, Point3d center, double radius)
+        public static ObjectId AddCircleToModelSpace(
+            this Database db,
+            Point3d center,
+            double radius
+        )
         {
-            //
             Circle c = new Circle(center, new Vector3d(0, 0, 1), radius);
             return AddEntityToModelSpace(db, c);
         }
@@ -93,11 +111,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         /*
          * 两点绘制圆
          */
-        public static ObjectId AddCircleToModelSpace(this Database db, Point3d point1, Point3d point2)
+        public static ObjectId AddCircleToModelSpace(
+            this Database db,
+            Point3d point1,
+            Point3d point2
+        )
         {
-            //获取中心点
+            // 获取中心点
             Point3d center = point1.GetCenterPointBetweenTwoPoint(point2);
-            //获取半径
+
+            // 获取半径
             double radius = point1.GetDistanceBetweenTwoPoint(center);
             return AddCircleToModelSpace(db, center, radius);
         }
@@ -105,14 +128,20 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         /*
          * 三点绘制圆
          */
-        public static ObjectId AddCircleToModelSpace(this Database db, Point3d point1, Point3d point2, Point3d point3)
+        public static ObjectId AddCircleToModelSpace(
+            this Database db,
+            Point3d point1,
+            Point3d point2,
+            Point3d point3
+        )
         {
-            //先判断三点是否在同一条直线上
+            // 先判断三点是否在同一条直线上
             if(point1.AreCollinear(point2, point3))
             {
                 return ObjectId.Null;
             }
-            //声明几何类的CircularArc3d对象
+
+            // 声明几何类的CircularArc3d对象
             CircularArc3d cArc = new CircularArc3d(point1, point2, point3);
             return db.AddCircleToModelSpace(cArc.Center, cArc.Radius);
         }
@@ -153,7 +182,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                     BlockTable bt = (BlockTable)trans.GetObject(db.BlockTableId, OpenMode.ForRead);
 
                     // 打开块表记录
-                    //  bt[BlockTableRecord.ModelSpace] 通过名称 "ModelSpace" 从块表中获取模型空间的记录
+                    // bt[BlockTableRecord.ModelSpace] 通过名称 "ModelSpace" 从块表中获取模型空间的记录
                     // 模型空间是我们通常绘图的区域，它本身也是一个特殊的块
                     BlockTableRecord btr = (BlockTableRecord)
                         trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
@@ -171,10 +200,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                     trans.Commit();
 
                     Console.WriteLine($"Entity:{entityId}已成功创建！");
-                } catch(Exception ex)
+                }
+                catch(Exception ex)
                 {
                     // 如果在事务过程中发生任何异常，捕获并显示错误信息
                     Console.WriteLine($"创建Entity:{entityId}时发生错误:{ex.Message}");
+
                     // 由于我们使用了 'using' 语句，即使不手动调用 Abort()，当代码块结束时事务也会自动回滚
                 }
                 return entityId;
@@ -241,21 +272,26 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                         {
                             // 将实体添加到模型空间
                             entityId = btr.AppendEntity(entity);
+
                             // 将新创建的实体通知事务，并获取其 ObjectId
                             trans.AddNewlyCreatedDBObject(entity, true);
+
                             // 记录当前实体的 ObjectId
                             objectIds[i] = entity.ObjectId;
                             Console.WriteLine($"Entity:{objectIds[i]}已成功创建！");
-                        } else
+                        }
+                        else
                         {
                             // 如果传入的实体为 null，存储一个无效的 ObjectId
                             objectIds[i] = ObjectId.Null;
                         }
                     }
                     trans.Commit();
-                } catch(Exception ex)
+                }
+                catch(Exception ex)
                 {
                     Console.WriteLine($"创建Entity:{entityId}时发生错误:{ex.Message}");
+
                     // 返回空数组或 null，表示操作失败
                     return Array.Empty<ObjectId>();
                 }
@@ -263,22 +299,34 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
-        // ======================基于上面两个AddEntity方法扩展====================================================
 
         /*
          * DB扩展添加直线命令 参数：startPoint，endPoint
          */
-        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, Point3d endPoint)
-        { return AddEntityToModelSpace(db, new Line(startPoint, endPoint)); }
+        public static ObjectId AddLineToModelSpace(
+            this Database db,
+            Point3d startPoint,
+            Point3d endPoint
+        )
+        {
+            return AddEntityToModelSpace(db, new Line(startPoint, endPoint));
+        }
 
         /*
          * DB扩展添加直线命令 参数：startPoint，length，degree
          */
-        public static ObjectId AddLineToModelSpace(this Database db, Point3d startPoint, double length, double degree)
+        public static ObjectId AddLineToModelSpace(
+            this Database db,
+            Point3d startPoint,
+            double length,
+            double degree
+        )
         {
             // 通过startPoint,length,degree计算endPoint
             Point3d endPoint = startPoint.GetEndPoint(length, degree);
             return AddLineToModelSpace(db, startPoint, endPoint);
         }
+
     }
+
 }

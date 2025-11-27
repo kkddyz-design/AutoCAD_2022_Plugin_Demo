@@ -17,11 +17,13 @@ using AcCoreAp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 /*
  * 定义了一个命名空间，用于组织和隔离代码，避免与其他插件或 AutoCAD 内部代码发生命名冲突。
  */
+
 namespace AutoCAD_2022_Plugin_Demo
 {
     /*
      * 在Commands这个类中自定义命令
      */
+
     public class Commands
     {
         /*
@@ -33,6 +35,7 @@ namespace AutoCAD_2022_Plugin_Demo
          * 方法的签名必须是public static void 方法名()
          *
          */
+
         [CommandMethod("TEST")]
         public static void Test()
         {
@@ -40,5 +43,7 @@ namespace AutoCAD_2022_Plugin_Demo
             var db = doc.Database;
             var ed = doc.Editor;
         }
+
     }
+
 }

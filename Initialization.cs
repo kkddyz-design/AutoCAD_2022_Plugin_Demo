@@ -9,14 +9,17 @@ using System.Linq;
  */
 using AcCoreAp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
+
 namespace AutoCAD_2022_Plugin_Demo
 {
     /*
      * IExtensionApplication 是 AutoCAD .NET 插件的 强制接口：任何 AutoCAD 插件（.dll）都必须包含一个实现该接口的类，作为插件的 “入口点”。
      * AutoCAD 加载插件时，会自动查找并实例化这个类，然后调用其 Initialize 方法；插件卸载时，会调用 Terminate 方法。
      */
+
     public class Initialization : IExtensionApplication
     {
+
         private void OnIdle(object sender, EventArgs e)
         {
             // 获取 AutoCAD 中当前激活的绘图文档（即用户正在操作的 .dwg 文件）
@@ -38,5 +41,7 @@ namespace AutoCAD_2022_Plugin_Demo
         public void Terminate()
         {
         }
+
     }
+
 }

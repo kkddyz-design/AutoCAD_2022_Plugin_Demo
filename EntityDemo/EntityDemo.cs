@@ -14,18 +14,21 @@ using System;
  */
 [assembly: CommandClass(typeof(EntityDemo))]
 
+
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 {
+
     public class EntityDemo
     {
+
+        public static Document doc = Application.DocumentManager.MdiActiveDocument; //获取当前激活的绘图窗口（文档）
+        public static Database db = doc.Database; // 图形数据库对象
+
+
         // 创建圆弧对象 方式1：圆心+半径+起始弧度+终止弧度
         [CommandMethod("ArcDemo1")]
         public static void ArcDemo1()
         {
-            // 获取数据源
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-
             // StartAngle使用弧度制 圆弧绘制沿逆时针,因此StartAngle(负数)必须小于EndAngle
             Arc arc1 = new Arc();
             arc1.Center = new Point3d(0, 0, 0); // 中心
@@ -35,7 +38,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 
             double startDegree = -45;
             double endDegree = 45;
-            Arc arc2 = new Arc(new Point3d(200, 200, 0), 100, startDegree.DegreeToAngle(), endDegree.DegreeToAngle());
+            Arc arc2 = new Arc(
+                new Point3d(200, 200, 0),
+                100,
+                startDegree.DegreeToAngle(),
+                endDegree.DegreeToAngle()
+            );
 
             // 将圆弧写入db
             db.AddEntityToModelSpace(arc1);
@@ -46,10 +54,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         [CommandMethod("ArcDemo2")]
         public static void ArcDemo2()
         {
-            // 获取数据源
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-
             // 三点必须不共线
             Point3d startPoint = new Point3d(100, 100, 0);
             Point3d midPoint = new Point3d(120, 120, 0);
@@ -60,17 +64,18 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 
         // 两点 + 圆心 EntityTools实现了,这里不写了
 
-        [CommandMethod("CircleDemo1")]
+        [CommandMethod("CircleDemo")]
         public static void CircleDemo()
         {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-
             db.AddCircleToModelSpace(new Point3d(50, 50, 0), 100);
 
             db.AddCircleToModelSpace(new Point3d(100, 100, 0), new Point3d(200, 100, 0));
 
-            db.AddCircleToModelSpace(new Point3d(300, 300, 0), new Point3d(270, 180, 0), new Point3d(160, 240, 0));
+            db.AddCircleToModelSpace(
+                new Point3d(300, 300, 0),
+                new Point3d(270, 180, 0),
+                new Point3d(160, 240, 0)
+            );
         }
 
         /*
@@ -88,12 +93,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 
             line1.StartPoint = startPoint;
             line1.EndPoint = endPoint;
-            /*
-             * 声明图形数据库对象
-             * Application.DocumentManager.MdiActiveDocument获取当前激活的绘图窗口（文档）
-             */
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
 
             /*
              * 不封装获取 Database 是为了遵循 职责单一原则，保持方法的灵活性、可测试性和清晰性。
@@ -114,7 +113,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             {
                 // 注意字符串前面的 $ 符号，它告诉编译器这是一个插值字符串，{objectId} 会被变量 objectId 的值替换。
                 doc.Editor.WriteMessage($"成功创建直线，ID为：{objectId}");
-            } else
+            }
+            else
             {
                 doc.Editor.WriteMessage($"创建直线{objectId}失败！");
             }
@@ -147,7 +147,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                 if(objectId.IsValid)
                 {
                     doc.Editor.WriteMessage($"成功创建直线，ID为：{objectId}\n");
-                } else
+                }
+                else
                 {
                     doc.Editor.WriteMessage($"创建直线{objectId}失败！\n");
                 }
@@ -172,7 +173,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             if(objectId.IsValid)
             {
                 doc.Editor.WriteMessage($"成功创建直线，ID为：{objectId}\n");
-            } else
+            }
+            else
             {
                 doc.Editor.WriteMessage($"创建直线{objectId}失败！\n");
             }
@@ -183,10 +185,23 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             if(objectId.IsValid)
             {
                 doc.Editor.WriteMessage($"成功创建直线，ID为：{objectId}\n");
-            } else
+            }
+            else
             {
                 doc.Editor.WriteMessage($"创建直线{objectId}失败！\n");
             }
         }
+
+
+        /*
+         * 插入多段线
+         */
+        [CommandMethod("PolyLineDemo1")]
+        public static void PolyLineDemo1()
+        {
+            Polyline pl = new Polyline();
+        }
+
     }
+
 }
