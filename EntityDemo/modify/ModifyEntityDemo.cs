@@ -37,6 +37,34 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
         }
 
 
+        [CommandMethod("CopyDemo1")]
+        public static void CopyDemo1()
+        {
+            Point3d center = new Point3d(100, 100, 0);
+            Point3d targetCenter = new Point3d(200, 200, 0);
+
+            // 先修改,再写入db
+            Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
+            Entity c2 = c1.CopyEntity(center, targetCenter);
+            db.AddEntityToModelSpace(c1);
+            db.AddEntityToModelSpace(c2);
+        }
+
+        [CommandMethod("CopyDemo2")]
+        public static void CopyDemo2()
+        {
+            Point3d center = new Point3d(100, 100, 0);
+            Point3d targetCenter = new Point3d(200, 200, 0);
+
+            // 先写入db,再修改
+            Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
+            db.AddEntityToModelSpace(c1);
+
+            Entity c2 = c1.CopyEntity(center, targetCenter);
+            db.AddEntityToModelSpace(c2);
+        }
+
+
         [CommandMethod("MoveDemo1")]
         public static void MoveDemo1()
         {
@@ -52,6 +80,15 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
             Circle c2 = new Circle(center, new Vector3d(0, 0, 1), 50);
             db.AddEntityToModelSpace(c2);
             c2.MoveEntity(center, targetCenter);
+        }
+
+        [CommandMethod("RotateDemo1")]
+        public static void RotateDemo1()
+        {
+            // 创建三角形
+            Point2d center = new Point2d(100, 100);
+            ObjectId objId = db.AddPolygonToModelSpace(center, 100, 3, Math.PI / 2);
+            db.RotateEntity(objId, new Point3d(center.X, center.Y, 0), 90);
         }
 
     }

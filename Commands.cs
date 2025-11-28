@@ -7,7 +7,6 @@ using AutoCAD_2022_Plugin_Demo;
 using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Linq;
-using AcCoreAp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
 /*
  * 程序集级别的特性（Attribute），是告诉 AutoCAD：“我这个插件（.dll 文件）里包含了自定义命令，请你加载它们。
@@ -39,9 +38,9 @@ namespace AutoCAD_2022_Plugin_Demo
         [CommandMethod("TEST")]
         public static void Test()
         {
-            var doc = AcCoreAp.DocumentManager.MdiActiveDocument;
-            var db = doc.Database;
-            var ed = doc.Editor;
+            // var doc = AcCoreAp.DocumentManager.MdiActiveDocument;
+            // var db = doc.Database;
+            // var ed = doc.Editor;
         }
 
     }

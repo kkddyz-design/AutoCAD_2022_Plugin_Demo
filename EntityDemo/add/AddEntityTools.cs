@@ -35,7 +35,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
         }
 
         /*
-         * 绘制圆弧 参数： leftDown,midPoint,rightUp
+         * 三点绘制圆弧 参数： startPoint,midPoint,endPoint
          */
         public static ObjectId AddArcToModelSpace(this Database db, Point3d startPoint, Point3d midPoint, Point3d endPoint)
         {
@@ -50,20 +50,22 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
                 // CircularArc3d通过三点计算圆弧的圆心,半径,起始终止弧度
                 CircularArc3d cArc = new CircularArc3d(startPoint, midPoint, endPoint);
 
-                // 如何通过点计算StartAngle,EndAngle?? 借助Vector3D(向量)
-                Point3d center = cArc.Center;
 
+                #region
+                // 如何通过点计算StartAngle,EndAngle?? 借助Vector3D(向量)
+                // Point3d center = cArc.Center;
                 // 获取center到圆弧端点的向量
-                Vector3d startVector = center.GetVectorTo(startPoint);
-                Vector3d endVector = center.GetVectorTo(endPoint);
+                // Vector3d startVector = center.GetVectorTo(startPoint);
+                // Vector3d endVector = center.GetVectorTo(endPoint);
 
                 // xVector X轴上的单位向量
-                Vector3d xVector = new Vector3d(1, 0, 0);
+                // Vector3d xVector = new Vector3d(1, 0, 0);
 
                 // 通过GetAngleTo得到两个向量之间的夹角
                 // double startAngle = xVector.GetAngleTo(startVector);
                 // double endAngle = xVector.GetAngleTo(endVector);
                 // startAngle == cArc.StartAngle ; EndAngle ==  cArc.EndAngle
+                #endregion
 
                 // 将数据层和工具层分开,Arc内部只需要和db交互的数据,和基于这些数据的函数
                 Arc arc = new Arc(cArc.Center, cArc.Radius, cArc.StartAngle, cArc.EndAngle);
