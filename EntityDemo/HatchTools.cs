@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 /*
- * 这个类有点多,而且和实体类有些区别，单独放到other里面
+ * 待修改,抽离出domain和db层的逻辑
  */
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.other
+namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 {
 
     public static class HatchTools

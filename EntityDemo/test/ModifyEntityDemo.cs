@@ -94,6 +94,29 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
             db.UpdateEntityToModelSpace(objId, originalEntity => EntityModifiers.RotateEntity(originalEntity, center, 90));
         }
 
+
+        [CommandMethod("ScaleDemo1")]
+        public static void ScaleDemo1()
+        {
+            Point3d center = new Point3d(100, 100, 0);
+
+            // 先缩放,再写入db
+            Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
+            c1.ScaleEntity(center, 2);
+            db.AddEntityToModelSpace(c1);
+        }
+
+        [CommandMethod("ScaleDemo2")]
+        public static void ScaleDemo2()
+        {
+            Point3d center = new Point3d(100, 100, 0);
+
+            // 先写入再缩放
+            Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
+            db.AddEntityToModelSpace(c1);
+            c1.ScaleEntity(center, 2);
+        }
+
     }
 
 }

@@ -6,9 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 
 /*
- * EntityModifiers 定义编辑实体的逻辑,函数统一返回Entity[] entityArray,即操作Entity后的结果
+ * EntityModifiers定义编辑实体的逻辑,函数统一返回Entity[] entityArray,即操作Entity后的结果
  * 
  * 所有对实体的编辑都需要调用这个类中的方法,因此在业务层不需要在对参数进行校验判断
+ * 
+ * 实现方法做参数校验！！！！！
+ * 
+ * 避免二义性,这里不扩展entity
  */
 
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
@@ -169,6 +173,34 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
             mirroredEntity.TransformBy(mirrorMatrix);
 
             return new Entity[] { mirroredEntity };
+        }
+
+
+        public static Entity[] ScaleEntity(Entity originEntity, Point3d basePoint, double scaleFactor)
+        {
+            // 1. 输入参数有效性检查 (参考你的实现)
+            if(originEntity == null) {
+                throw new ArgumentNullException(nameof(originEntity), "原始实体对象不能为空。");
+            }
+            if(basePoint == null) // 在实际API中，Point3d通常是值类型，不会为null，但检查一下更安全
+            {
+                throw new ArgumentNullException(nameof(basePoint), "缩放基点不能为空。");
+            }
+
+            // 也可以对缩放因子做一些合理性检查，例如不能为零
+            if(scaleFactor <= 0) {
+                throw new ArgumentOutOfRangeException(nameof(scaleFactor), "缩放因子必须是正数。");
+            }
+
+            // 2. 创建缩放变换矩阵
+            // 缩放矩阵需要考虑基点，因此是一个复合变换：平移 -> 缩放 -> 平移回
+            Matrix3d scaleMatrix = Matrix3d.Scaling(scaleFactor, basePoint);
+
+            // 3. 对新实体应用缩放矩阵 (核心修正点)
+            originEntity.TransformBy(scaleMatrix);
+
+            // 4. 返回包含新实体的数组 (参考你的实现)
+            return new Entity[0];
         }
 
     }

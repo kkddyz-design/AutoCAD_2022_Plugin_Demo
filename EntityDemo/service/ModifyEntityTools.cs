@@ -1,7 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 
@@ -39,107 +38,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
          *  
          *  
          */
-        public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entityId, bool keepOriginal, Func<Entity, Entity[]> updater)
-        {
-            // 1. 输入参数有效性检查
-            if(db == null) {
-                throw new ArgumentNullException(nameof(db), "数据库对象不能为空。");
-            }
-            if(entityId.IsNull || !entityId.IsValid) {
-                throw new ArgumentException($"实体ID无效 (IsNull: {entityId.IsNull}, IsValid: {entityId.IsValid})。", nameof(entityId));
-            }
 
-            if(updater == null) {
-                throw new ArgumentException("策略方法update为空");
-            }
-
-            // 2. 使用事务来复制实体
-            using(Transaction trans = db.TransactionManager.StartTransaction()) {
-                try {
-                    /*
-                    * 这里的as是C#中的类型转换运算符，主要用于安全地将一个对象转换为目标类型。
-                    * 这里尝试将 trans.GetObject(...) 返回的 DBObject 对象，转换为 BlockTable 类型.
-                    *  1. 如果转换成功，blockTable 变量将引用该 BlockTable 对象。
-                    *  2. 如果转换失败（例如，返回的对象不是 BlockTable 类型或为 null），blockTable 变量将被赋值为 null，不会抛出 InvalidCastException 异常。
-                    * 
-                    * 如果直接强制转换（(BlockTable)trans.GetObject(...)）在转换失败时会抛出异常
-                    * as 则返回 null，这样可以避免异常处理，让代码更简洁、更安全。
-                    * 
-                    */
-
-                    // 2.1 以Write模式打开原实体 并转换为Entity类型
-                    Entity originEntity = trans.GetObject(entityId, OpenMode.ForWrite) as Entity;
-
-                    // 如果类型转换失败,entity会被赋值为null
-                    if(originEntity == null || originEntity.IsErased) {
-                        trans.Abort();
-                        throw new ArgumentException($"ID为 {entityId} 的实体不存在或已被删除。");
-                    }
-
-                    // 2.2 获取块表
-                    ObjectId blockTableId = db.BlockTableId;
-                    BlockTable blockTable = trans.GetObject(blockTableId, OpenMode.ForRead) as BlockTable;
-                    if(blockTable == null) {
-                        trans.Abort();
-                        throw new Exception("无法获取块表（BlockTable）。");
-                    }
-
-                    // 2.3 获取模型空间
-                    ObjectId modelSpaceId = blockTable[BlockTableRecord.ModelSpace]; // 关键：获取模型空间ID
-                    BlockTableRecord modelSpace = trans.GetObject(modelSpaceId, OpenMode.ForWrite) as BlockTableRecord;
-                    if(modelSpace == null) {
-                        trans.Abort();
-                        throw new Exception("无法获取模型空间（ModelSpace）。");
-                    }
-
-                    // 2.4 调用updater获取操作结果
-                    Entity[] entityArray = updater.Invoke(originEntity);
-
-                    if(entityArray == null) {
-                        throw new ArgumentException("策略方法返回null");
-                    }
-                    else {
-                        // 2.4.1 修改实体 updater返回entity[0] 会进入else但不会执行下面循环
-                        // 2.4.2 添加实体 -- 由updater决定
-                        foreach(Entity newEntity in entityArray) {
-                            if(newEntity != null) {
-                                modelSpace.AppendEntity(newEntity);
-                                trans.AddNewlyCreatedDBObject(newEntity, true);
-                                Debug.WriteLine($"成功添加实体 {entityId}，新实体ID为 {newEntity.Id}。");
-                            }
-                            else {
-                                Debug.WriteLine("警告：更新策略返回的实体数组中包含null元素，已跳过。");
-                            }
-                        }
-                    }
-
-                    // 2.4.3 删除原实体 -- 可选由业务层传入keepOriginal决定
-                    if(!keepOriginal) {
-                        originEntity.Erase();
-                    }
-
-                    // 2.6 提交事务
-                    trans.Commit();
-
-                    // 2.7 返回updater调用结果
-                    return entityArray;
-                }
-                catch(Exception ex) {
-                    trans.Abort();
-                    Debug.WriteLine($"编辑实体失败: {ex.Message}");
-                    throw ex;
-                }
-            }
-        }
-
-        /*
-         * (常调用) 更新后保留原对象
-         */
-        public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entityId, Func<Entity, Entity[]> updater)
-        {
-            bool keepOriginal = true;
-            return UpdateEntityToModelSpace(db, entityId, keepOriginal, updater);
-        }
 
         /// <summary>
         /// 智能地修改实体颜色。 让Entity的扩展方法作为 “主入口”，内部根据实体状态， 调用Database的扩展方法来处理“已存在于数据库中” 的情况。
@@ -249,6 +148,20 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
                 // 情况B：实体已存在于数据库中 调用db扩展方法访问数据库 
                 entity.Database.UpdateEntityToModelSpace(entity.Id, (originalEntity) =>
                                                                     EntityModifiers.RotateEntity(originalEntity, basePoint, degree));
+            }
+        }
+
+
+        public static void ScaleEntity(this Entity entity, Point3d basePoint, double scaleFactor)
+        {
+            if(entity.IsNewObject) {
+                // 情况A：实体是新创建的，尚未添加到数据库 调用EntityModifiers编辑原对象，这个方法返回Entity[0]没必要返回
+                EntityModifiers.ScaleEntity(entity, basePoint, scaleFactor);
+            }
+            else {
+                // 情况B：实体已存在于数据库中 调用db扩展方法访问数据库 
+                entity.Database.UpdateEntityToModelSpace(entity.Id, (originalEntity) =>
+                                                                    EntityModifiers.ScaleEntity(entity, basePoint, scaleFactor));
             }
         }
 

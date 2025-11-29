@@ -71,17 +71,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="EntityDemo\add\AddEntityTools.cs" />
-    <Compile Include="EntityDemo\modify\EntityModifiers.cs" />
-    <Compile Include="EntityDemo\modify\ModifyEntityDemo.cs" />
-    <Compile Include="EntityDemo\modify\ModifyEntityTools.cs" />
-    <Compile Include="EntityDemo\other\GeometryTools.cs" />
-    <Compile Include="EntityDemo\add\AddEntityDemo.cs" />
-    <Compile Include="EntityDemo\other\HatchTools.cs" />
+    <Compile Include="EntityDemo\service\AddEntityTools.cs" />
+    <Compile Include="EntityDemo\DBTools.cs" />
+    <Compile Include="EntityDemo\domain\EntityModifiers.cs" />
+    <Compile Include="EntityDemo\test\ModifyEntityDemo.cs" />
+    <Compile Include="EntityDemo\service\ModifyEntityTools.cs" />
+    <Compile Include="EntityDemo\domain\GeometryTools.cs" />
+    <Compile Include="EntityDemo\test\AddEntityDemo.cs" />
+    <Compile Include="EntityDemo\HatchTools.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="EntityDemo\readme.md" />
     <None Include="start.scr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

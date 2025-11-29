@@ -2,7 +2,6 @@
  * 学习图形绘制 即Entity对象的操作
  */
 using AutoCAD_2022_Plugin_Demo.EntityDemo.add;
-using AutoCAD_2022_Plugin_Demo.EntityDemo.other;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
