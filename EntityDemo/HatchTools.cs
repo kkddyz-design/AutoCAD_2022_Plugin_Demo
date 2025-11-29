@@ -3,6 +3,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
 
 /*
  * 待修改,抽离出domain和db层的逻辑

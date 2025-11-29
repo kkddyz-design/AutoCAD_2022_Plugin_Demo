@@ -4,16 +4,17 @@
  * Line Circle Arc(圆弧) Ellipse(椭圆)  Polyline(多段线)
  * 矩形，多边形都是Polyline 没有对应的实体类,考虑封装成ntity
  */
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
 
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
+namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
 {
 
     // 扩展方法必须在非泛型静态类中定义
-    public static class AddEntityTools
+    public static class AddEntityService
     {
         /*
          * 绘制圆弧 参数： center, leftDown, degree

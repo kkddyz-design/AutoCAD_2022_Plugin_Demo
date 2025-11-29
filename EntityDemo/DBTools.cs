@@ -142,7 +142,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
-        public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entityId, bool keepOriginal, Func<Entity, Entity[]> updater)
+        public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entityId, Func<Entity, Entity[]> updater)
         {
             // 1. 输入参数有效性检查
             if(db == null) {
@@ -216,15 +216,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                         }
                     }
 
-                    // 2.4.3 删除原实体 -- 可选由业务层传入keepOriginal决定
-                    if(!keepOriginal) {
-                        originEntity.Erase();
-                    }
-
-                    // 2.6 提交事务
+                    // 2.5 提交事务
                     trans.Commit();
 
-                    // 2.7 返回updater调用结果
+                    // 2.6 返回updater调用结果
                     return entityArray;
                 }
                 catch(Exception ex) {
@@ -234,17 +229,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                 }
             }
         }
-
-
-        /*
-         * (常调用) 更新后保留原对象
-         */
-        public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entityId, Func<Entity, Entity[]> updater)
-        {
-            bool keepOriginal = true;
-            return UpdateEntityToModelSpace(db, entityId, keepOriginal, updater);
-        }
-
 
         public static bool DeleteEntityToModelSpace(this Database db, ObjectId entityId)
         {

@@ -1,7 +1,9 @@
 ﻿/*
  * 学习图形绘制 即Entity对象的操作
  */
-using AutoCAD_2022_Plugin_Demo.EntityDemo.add;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
@@ -14,7 +16,7 @@ using System;
 [assembly: CommandClass(typeof(AddEntityDemo))]
 
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
+namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 {
 
     public class AddEntityDemo

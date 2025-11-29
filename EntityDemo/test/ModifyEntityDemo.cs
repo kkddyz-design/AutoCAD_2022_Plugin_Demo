@@ -1,5 +1,5 @@
-﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.add;
-using AutoCAD_2022_Plugin_Demo.EntityDemo.modify;
+﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -30,10 +30,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 
             // 先写入,再修改
             db.AddEntityToModelSpace(c1);
-            c1.ChangeEntityColor(6);
+            db.ChangeEntityColor(c1.Id, 6);
 
             // 先修改,再写入
-            c2.ChangeEntityColor(10);
+            c2.ChangeColor(6);
             db.AddEntityToModelSpace(c2);
         }
 
@@ -46,7 +46,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 
             // 先修改,再写入db
             Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
-            Entity c2 = c1.CopyEntity(center, targetCenter);
+            Entity c2 = c1.CopyEntity(center, targetCenter)[0];
             db.AddEntityToModelSpace(c1);
             db.AddEntityToModelSpace(c2);
         }
@@ -60,9 +60,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             // 先写入db,再修改
             Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
             db.AddEntityToModelSpace(c1);
-
-            Entity c2 = c1.CopyEntity(center, targetCenter);
-            db.AddEntityToModelSpace(c2);
+            Entity c2 = db.CopyEntity(c1.Id, center, targetCenter);
         }
 
 
@@ -119,7 +117,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         }
 
         [CommandMethod("DeleteDemo1")]
-        public static void DeleteDemo2()
+        public static void DeleteDemo1()
         {
             // db.AddCircleModelSpace(new Point3d(100, 100, 0), 50);
             Circle c1 = new Circle(new Point3d(100, 100, 0), new Vector3d(0, 0, 1), 50);
@@ -129,6 +127,24 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddEntityToModelSpace(c1);
             db.AddEntityToModelSpace(c2);
             db.DeleteEntityToModelSpace(c2.Id);
+        }
+
+        [CommandMethod("ArrayDemo1")]
+        public static void ArrayDemo1()
+        {
+            Circle c1 = new Circle(new Point3d(100, 100, 0), new Vector3d(0, 0, 1), 50);
+
+            db.AddEntityToModelSpace(c1);
+
+            c1.ArrayRectEntity(3, 4, 100, 100);
+        }
+
+        [CommandMethod("ArrayDemo2")]
+        public static void ArrayDemo2()
+        {
+            Circle c1 = new Circle(new Point3d(100, 100, 0), new Vector3d(0, 0, 1), 50);
+
+            db.AddEntityToModelSpace(c1);
         }
 
     }

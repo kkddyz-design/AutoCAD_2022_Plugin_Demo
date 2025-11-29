@@ -12,10 +12,10 @@ using System.Linq;
  * 
  * 实现方法做参数校验！！！！！
  * 
- * 避免二义性,这里不扩展entity
+ * 扩展entity，约束Entity的扩展方法只能在domain层
  */
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
+namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
 {
 
     public static class EntityModifiers
@@ -25,7 +25,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
          * 返回null,说明不产生新对象,修改原对象
          */
 
-        public static Entity[] ChangeColor(Entity originEntity, short colorIndex)
+        public static Entity[] ChangeColor(this Entity originEntity, short colorIndex)
         {
             // 输入参数合法性检验
             if(originEntity == null) {
@@ -46,7 +46,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
         /*
          * 获得拷贝后的新实体
          */
-        public static Entity[] CopyEntity(Entity originEntity, Point3d basePoint, Point3d targetPoint)
+        public static Entity[] CopyEntity(this Entity originEntity, Point3d basePoint, Point3d targetPoint)
         {
             // 输入参数有效性检查
             if(originEntity == null) {
@@ -86,7 +86,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
         /*
          * 获取移动后的实体 不能用拷贝后,删除原对象代替,因为ObjectId会改变
          */
-        public static Entity[] MoveEntity(Entity originEntity, Point3d basePoint, Point3d targetPoint)
+        public static Entity[] MoveEntity(this Entity originEntity, Point3d basePoint, Point3d targetPoint)
         {
             // 输入参数有效性检查
             if(originEntity == null) {
@@ -121,7 +121,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
          * 
          * 当前实现默认绕 Z 轴 旋转。如果你需要绕 X 轴或 Y 轴旋转，只需将 Vector3d.ZAxis 替换为 Vector3d.XAxis 或 Vector3d.YAxis
          */
-        public static Entity[] RotateEntity(Entity originEntity, Point3d basePoint, double degree)
+        public static Entity[] RotateEntity(this Entity originEntity, Point3d basePoint, double degree)
         {
             // 1. 输入参数有效性检查
             if(originEntity == null) {
@@ -150,7 +150,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
         /*
          * 获取镜像后的实体
          */
-        public static Entity[] MirrorEntity(Entity originEntity, Point3d pointA, Point3d pointB)
+        public static Entity[] MirrorEntity(this Entity originEntity, Point3d pointA, Point3d pointB)
         {
             // 1. 输入参数有效性检查
             if(originEntity == null) {
@@ -176,7 +176,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
         }
 
 
-        public static Entity[] ScaleEntity(Entity originEntity, Point3d basePoint, double scaleFactor)
+        public static Entity[] ScaleEntity(this Entity originEntity, Point3d basePoint, double scaleFactor)
         {
             // 1. 输入参数有效性检查 (参考你的实现)
             if(originEntity == null) {
@@ -201,6 +201,108 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
 
             // 4. 返回包含新实体的数组 (参考你的实现)
             return new Entity[0];
+        }
+
+
+        /*
+         * originEntity并未存储到resultEntities[0][0]
+         * 这样做的好处是,作为updater传入时,不会重复添加自己的拷贝(这在逻辑上不通）
+         * 在业务层,对于尚未加入DB的实体,将其设置到resultEntities[0][0],
+         */
+        public static Entity[] ArrayRectEntity(this Entity originEntity, int row, int col, double distRow, double distCol)
+        {
+            // 1. 参数检验
+            if(originEntity == null) {
+                throw new ArgumentNullException(nameof(originEntity), "原始实体对象不能为空。");
+            }
+            if(row <= 0) {
+                throw new ArgumentOutOfRangeException(nameof(row), "行数必须为正整数。");
+            }
+            if(col <= 0) {
+                throw new ArgumentOutOfRangeException(nameof(col), "列数必须为正整数。");
+            }
+            if(distRow <= 0) {
+                throw new ArgumentOutOfRangeException(nameof(distRow), "行间距必须为非负数。");
+            }
+            if(distCol <= 0) {
+                throw new ArgumentOutOfRangeException(nameof(distCol), "列间距必须为非负数。");
+            }
+
+            // 创建阵列数组
+            Entity[] resultEntities = new Entity[row * col];
+            int index = 0;
+
+            for(int i = 0; i < row; i++) {
+                for(int j = 0; j < col; j++) {
+                    // 克隆原始实体
+                    Entity clonedEntity = originEntity.Clone() as Entity;
+                    if(clonedEntity == null) {
+                        throw new Exception("克隆实体失败。");
+                    }
+
+                    // 创建平移矩阵
+                    Matrix3d translationMatrix = Matrix3d.Displacement(new Vector3d(j * distCol, i * distRow, 0));
+                    clonedEntity.TransformBy(translationMatrix);
+
+                    resultEntities[index] = clonedEntity;
+                    index++;
+                }
+            }
+
+            return resultEntities;
+        }
+
+
+        // 环形阵列函数：围绕指定中心点，生成num个实体，分布在totalDegree角度范围内
+        public static Entity[] ArrayPolarEntity(this Entity originEntity, int num, double totalDegree, Point3d centerPoint)
+        {
+            // 1. 参数检验（与原矩形阵列风格一致）
+            if(originEntity == null) {
+                throw new ArgumentNullException(nameof(originEntity), "原始实体对象不能为空。");
+            }
+            if(num <= 1) {
+                throw new ArgumentOutOfRangeException(nameof(num), "阵列数量必须大于1。");
+            }
+            if(totalDegree <= 0 || totalDegree > 360) {
+                throw new ArgumentOutOfRangeException(nameof(totalDegree), "总角度必须在(0, 360]范围内。");
+            }
+
+            // 2. 初始化变量
+            Entity[] resultEntities = new Entity[num];
+            double radianPerStep = (totalDegree * Math.PI / 180) / (num - 1); // 每个实体的角度步长（弧度）
+            double originDist = originEntity.GetEntityDistanceToCenter(centerPoint); // 原始实体到中心点的距离
+
+            // 3. 遍历生成每个环形实体
+            for(int i = 0; i < num; i++) {
+                // 克隆原始实体
+                Entity clonedEntity = originEntity.Clone() as Entity;
+                if(clonedEntity == null) {
+                    throw new Exception("克隆实体失败。");
+                }
+
+                // 计算当前实体的角度（弧度）
+                double currentRadian = i * radianPerStep;
+
+                // 步骤1：计算平移向量（极坐标转直角坐标）
+                double x = centerPoint.X + originDist * Math.Cos(currentRadian);
+                double y = centerPoint.Y + originDist * Math.Sin(currentRadian);
+                Vector3d translationVec = new Vector3d(x - originEntity.GetPosition().X, y - originEntity.GetPosition().Y, 0);
+
+                // 步骤2：创建平移矩阵（将实体移动到目标位置）
+                Matrix3d translationMatrix = Matrix3d.Displacement(translationVec);
+
+                // 步骤3：创建旋转矩阵（实体随环形角度旋转）
+                Matrix3d rotationMatrix = Matrix3d.Rotation(currentRadian, Vector3d.ZAxis, centerPoint);
+
+                // 步骤4：合并矩阵并应用到实体
+                Matrix3d finalMatrix = translationMatrix * rotationMatrix;
+                clonedEntity.TransformBy(finalMatrix);
+
+                // 存入结果数组
+                resultEntities[i] = clonedEntity;
+            }
+
+            return resultEntities;
         }
 
     }

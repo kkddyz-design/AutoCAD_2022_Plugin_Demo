@@ -22,6 +22,7 @@
     <AssemblyName>AutoCAD_2022_Plugin_Demo</AssemblyName>
     <!-- Change the targeted .NET Framework version -->
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>8.0</LangVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -71,11 +72,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="EntityDemo\service\AddEntityTools.cs" />
+    <Compile Include="EntityDemo\service\AddEntityService.cs" />
     <Compile Include="EntityDemo\DBTools.cs" />
     <Compile Include="EntityDemo\domain\EntityModifiers.cs" />
     <Compile Include="EntityDemo\test\ModifyEntityDemo.cs" />
-    <Compile Include="EntityDemo\service\ModifyEntityTools.cs" />
+    <Compile Include="EntityDemo\service\ModifyEntityService.cs" />
     <Compile Include="EntityDemo\domain\GeometryTools.cs" />
     <Compile Include="EntityDemo\test\AddEntityDemo.cs" />
     <Compile Include="EntityDemo\HatchTools.cs" />
