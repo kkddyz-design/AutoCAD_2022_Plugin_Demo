@@ -219,8 +219,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
         public static void PolygonDemo1()
         {
             // 多边形顶点从90°开始
-            db.AddPolygonToModelSpace(new Point2d(0, 0), 100, 6, Math.PI / 2);
-            db.AddPolygonToModelSpace(new Point2d(200, 200), 100, 3, Math.PI / 2);
+            db.AddPolygonToModelSpace(new Point3d(0, 0, 0), 100, 6, Math.PI / 2);
+            db.AddPolygonToModelSpace(new Point3d(200, 200, 0), 100, 3, Math.PI / 2);
         }
 
 

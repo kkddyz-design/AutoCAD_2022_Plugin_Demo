@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\add\AddEntityTools.cs" />
+    <Compile Include="EntityDemo\modify\EntityModifiers.cs" />
     <Compile Include="EntityDemo\modify\ModifyEntityDemo.cs" />
     <Compile Include="EntityDemo\modify\ModifyEntityTools.cs" />
     <Compile Include="EntityDemo\other\GeometryTools.cs" />

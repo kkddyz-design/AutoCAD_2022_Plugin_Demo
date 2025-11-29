@@ -50,7 +50,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
                 // CircularArc3d通过三点计算圆弧的圆心,半径,起始终止弧度
                 CircularArc3d cArc = new CircularArc3d(startPoint, midPoint, endPoint);
 
-
                 #region
                 // 如何通过点计算StartAngle,EndAngle?? 借助Vector3D(向量)
                 // Point3d center = cArc.Center;
@@ -376,7 +375,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.add
         /*
          * 绘制多边形
          */
-        public static ObjectId AddPolygonToModelSpace(this Database db, Point2d center, double radius, int sideNum, double startAngle)
+        public static ObjectId AddPolygonToModelSpace(this Database db, Point3d center, double radius, int sideNum, double startAngle)
         {
             if(sideNum < 3)
             {

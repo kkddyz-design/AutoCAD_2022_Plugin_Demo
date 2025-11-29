@@ -32,7 +32,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
             c1.ChangeEntityColor(6);
 
             // 先修改,再写入
-            c2.ChangeEntityColor(8);
+            c2.ChangeEntityColor(10);
             db.AddEntityToModelSpace(c2);
         }
 
@@ -86,9 +86,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
         public static void RotateDemo1()
         {
             // 创建三角形
-            Point2d center = new Point2d(100, 100);
+            Point3d center = new Point3d(100, 100, 0);
+
+            // 直接在数据库创建对象,在demo层面不知道内存创建的对象
             ObjectId objId = db.AddPolygonToModelSpace(center, 100, 3, Math.PI / 2);
-            db.RotateEntity(objId, new Point3d(center.X, center.Y, 0), 90);
+
+            db.UpdateEntityToModelSpace(objId, originalEntity => EntityModifiers.RotateEntity(originalEntity, center, 90));
         }
 
     }
