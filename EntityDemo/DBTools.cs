@@ -5,6 +5,8 @@ using System.Linq;
 
 /*
  * 专门用于访问数据库
+ * 
+ * addEntity需要重构
  */
 
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo
@@ -154,7 +156,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                 throw new ArgumentException("策略方法update为空");
             }
 
-            // 2. 使用事务来复制实体
+            // 2. 通过事务更新实体
             using(Transaction trans = db.TransactionManager.StartTransaction()) {
                 try {
                     /*
@@ -241,6 +243,65 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         {
             bool keepOriginal = true;
             return UpdateEntityToModelSpace(db, entityId, keepOriginal, updater);
+        }
+
+
+        public static bool DeleteEntityToModelSpace(this Database db, ObjectId entityId)
+        {
+            // 1. 输入参数有效性检查
+            if(db == null) {
+                throw new ArgumentNullException(nameof(db), "数据库对象不能为空。");
+            }
+            if(entityId.IsNull || !entityId.IsValid) {
+                throw new ArgumentException($"实体ID无效 (IsNull: {entityId.IsNull}, IsValid: {entityId.IsValid})。", nameof(entityId));
+            }
+
+            // 2. 通过事务删除实体
+            using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                try {
+                    // 2.1 以Write模式打开原实体 并转换为Entity类型
+                    Entity entity = trans.GetObject(entityId, OpenMode.ForWrite) as Entity;
+
+                    // 如果类型转换失败,entity会被赋值为null
+                    if(entity == null || entity.IsErased) {
+                        trans.Abort();
+
+                        // 这种情况视为一种 “预期内的失败”
+                        // throw new ArgumentException($"ID为 {entityId} 的实体不存在或已被删除。"); 
+                        return false;
+                    }
+
+                    // 2.2 获取块表
+                    ObjectId blockTableId = db.BlockTableId;
+                    BlockTable blockTable = trans.GetObject(blockTableId, OpenMode.ForRead) as BlockTable;
+                    if(blockTable == null) {
+                        trans.Abort();
+                        throw new Exception("无法获取块表（BlockTable）。");
+                    }
+
+                    // 2.3 获取模型空间
+                    ObjectId modelSpaceId = blockTable[BlockTableRecord.ModelSpace]; // 关键：获取模型空间ID
+                    BlockTableRecord modelSpace = trans.GetObject(modelSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                    if(modelSpace == null) {
+                        trans.Abort();
+                        throw new Exception("无法获取模型空间（ModelSpace）。");
+                    }
+
+                    // 2.4 Erase删除对象
+                    entity.Erase();
+
+                    // 2.5 提交事务
+                    trans.Commit();
+
+                    // 2.6 返回true
+                    return true;
+                }
+                catch(Exception ex) {
+                    trans.Abort();
+                    Debug.WriteLine($"编辑实体失败: {ex.Message}");
+                    throw ex;
+                }
+            }
         }
 
     }

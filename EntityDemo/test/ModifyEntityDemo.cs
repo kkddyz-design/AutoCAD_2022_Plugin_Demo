@@ -1,5 +1,6 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.add;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.modify;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
@@ -10,7 +11,7 @@ using System.Linq;
 [assembly: CommandClass(typeof(ModifyEntityDemo))]
 
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
+namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 {
 
     public static class ModifyEntityDemo
@@ -115,6 +116,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.modify
             Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
             db.AddEntityToModelSpace(c1);
             c1.ScaleEntity(center, 2);
+        }
+
+        [CommandMethod("DeleteDemo1")]
+        public static void DeleteDemo2()
+        {
+            // db.AddCircleModelSpace(new Point3d(100, 100, 0), 50);
+            Circle c1 = new Circle(new Point3d(100, 100, 0), new Vector3d(0, 0, 1), 50);
+            Circle c2 = new Circle(new Point3d(200, 100, 0), new Vector3d(0, 0, 1), 50);
+
+            // 先写入,再修改
+            db.AddEntityToModelSpace(c1);
+            db.AddEntityToModelSpace(c2);
+            db.DeleteEntityToModelSpace(c2.Id);
         }
 
     }
