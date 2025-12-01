@@ -124,12 +124,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                                                          originalEntity.ArrayRectEntity(row, col, distRow, distCol));
         }
 
-        // public static Entity[] ArrayPolarEntityToModelSpace(this Database db, ObjectId entityId, int num, Point3d center, double totalDegree)
-        // {
-        // return
-        // db.UpdateEntityToModelSpace(entityId, (originalEntity) =>
-        // originalEntity.ArrayPolarEntity(center, num, totalDegree));
-        // }
+        public static Entity[] ArrayPolarEntityToModelSpace(
+            this Database db,
+            ObjectId entityId,
+            int num,
+            Point3d center,
+            double totalDegree
+        )
+        {
+            return
+            db.UpdateEntityToModelSpace(entityId, (originalEntity) =>
+                                                  originalEntity.ArrayPolarEntity(center, num, totalDegree));
+        }
+
     }
 
 }

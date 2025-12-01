@@ -20,10 +20,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
         /// <param name="db">图形数据库</param>
         /// <param name="patternName">图案名称</param>
         /// <param name="scale">填充比例</param>
-        /// <param name="degree">旋转角度</param>
+        /// <param name="angle">旋转角度</param>
         /// <param name="entid">边界图形的ObjectId</param>
         /// <returns>ObjectId</returns>
-        public static ObjectId HatchEntity(this Database db, string patternName, double scale, double degree, ObjectId entid)
+        public static ObjectId HatchEntity(this Database db, string patternName, double scale, double angle, ObjectId entid)
         {
             ObjectId hatchId = ObjectId.Null;
             using(Transaction trans = db.TransactionManager.StartTransaction())
@@ -44,7 +44,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                 trans.AddNewlyCreatedDBObject(hatch, true);
 
                 // 设置填充角度
-                hatch.PatternAngle = degree.DegreeToRadian();
+                hatch.PatternAngle = angle.DegreeToRadian();
 
                 // 设置关联
                 hatch.Associative = true;

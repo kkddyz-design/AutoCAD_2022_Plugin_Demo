@@ -63,6 +63,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddArcToModelSpace(startPoint, midPoint, endPoint);
         }
 
+        // 起点+角度画圆弧
+        [CommandMethod("ArcDemo3")]
+        public static void ArcDemo3()
+        {
+            // 三点必须不共线
+            Point3d center = new Point3d(0, 0, 0);
+            Point3d startPoint = new Point3d(0, 90, 0);
+            double degree = 90;
+
+            db.AddArcToModelSpace(center, startPoint, degree);
+        }
+
+
         // 两点 + 圆心 EntityTools实现了,这里不写了
 
         [CommandMethod("CircleDemo")]

@@ -11,16 +11,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
 
     public static class GeometryTools
     {
-
-        // 扩展double实现弧度转换角度
-        public static double RadianToDegree(this double angle)
-        {
-            return angle * 180 / Math.PI;
-        }
-
         /*
          * 判断三点是否共线
          */
+
         public static bool AreCollinear(
             this Point3d firstPoint,
             Point3d secondPoint,
@@ -43,19 +37,47 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
             return degree * Math.PI / 180;
         }
 
-        /*
-         * 获取向量角度
-         */
-        public static double GetAngleToXAxis(this Point3d startPoint, Point3d endPoint)
-        {
-            // 声明一个与X轴平行的向量
-            Vector3d temp = new Vector3d(1, 0, 0);
 
-            // 获取起点到终点的向量
-            Vector3d VsToe = startPoint.GetVectorTo(endPoint);
-            return VsToe.Y > 0 ? temp.GetAngleTo(VsToe) : -temp.GetAngleTo(VsToe);
+        // 扩展double实现弧度转换角度
+        public static double RadianToDegree(this double radian)
+        {
+            return radian * 180 / Math.PI;
         }
 
+
+        /// <summary>
+        /// 计算从起点到终点的向量与X轴正方向的夹角。
+        /// </summary>
+        /// <param name="startPoint">向量的起点。</param>
+        /// <param name="endPoint">向量的终点。</param>
+        /// <returns>标准化后的角度，范围在 [0°, 360°) 之间。</returns>
+        public static double GetAngleToXAxis(this Point3d startPoint, Point3d endPoint)
+        {
+            // 1. 声明一个与X轴正方向平行的向量
+            Vector3d xAxis = new Vector3d(1, 0, 0);
+
+            // 2. 获取从起点到终点的向量
+            Vector3d direction = startPoint.GetVectorTo(endPoint);
+
+            // 3. 处理零向量的特殊情况
+            if(direction.IsZeroLength()) {
+                return 0.0;
+            }
+
+            // 4. 计算与X轴正方向的夹角（弧度），范围在 [0, π]
+            double angleInRadians = xAxis.GetAngleTo(direction);
+
+            // 5. 将弧度转换为角度
+            double angleInDegrees = angleInRadians * 180.0 / Math.PI;
+
+            // 6. 判断方向向量是否在X轴下方（第三、四象限）
+            // 如果在下方，则角度应该是 360° 减去计算出的锐角
+            if(direction.Y < 0) {
+                angleInDegrees = 360.0 - angleInDegrees;
+            }
+
+            return angleInDegrees;
+        }
         /*
          * 获取两点的中心点
          */
@@ -177,6 +199,29 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
                 Math.Pow(entityBasePoint.X - center.X, 2) +
                 Math.Pow(entityBasePoint.Y - center.Y, 2)
             );
+        }
+
+
+        /*
+         * 自定义方法：获取实体自身的朝向角度（如直线的角度、文字的旋转角）
+         * 用于环形阵列
+         */
+        public static double GetOrientationAngle(this Entity entity)
+        {
+            switch(entity) {
+                case DBText text:
+                    return text.Rotation * 180 / Math.PI; // 文字旋转角（弧度转角度）
+                case Line line:
+                    Vector3d lineVec = line.EndPoint - line.StartPoint;
+                    return Math.Atan2(lineVec.Y, lineVec.X) * 180 / Math.PI; // 直线方向角
+                case Circle circle:
+                    return 0; // 圆形无朝向，返回0
+                case BlockReference block:
+                    return block.Rotation * 180 / Math.PI; // 块旋转角
+                // 其他实体类型可根据需求扩展
+                default:
+                    return 0; // 默认朝向0°
+            }
         }
 
     }

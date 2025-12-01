@@ -141,16 +141,28 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddEntityToModelSpace(entities);
         }
 
-        // [CommandMethod("ArrayDemo2")]
-        // public static void ArrayDemo2()
-        // {
-        // // 将c1绕原点整列6个
-        // Circle c1 = new Circle(new Point3d(100, 0, 0), new Vector3d(0, 0, 1), 30);
-        // Entity[] array = c1.ArrayPolarEntity(new Point3d(0, 0, 0), 5, 180);
+        [CommandMethod("ArrayDemo2")]
+        public static void ArrayDemo2()
+        {
+            // 将c1绕原点整列6个
+            Circle c1 = new Circle(new Point3d(100, 100, 0), new Vector3d(0, 0, 1), 30);
+            Entity[] array = c1.ArrayPolarEntity(new Point3d(0, 0, 0), 4, 180);
 
-        // db.AddEntityToModelSpace(c1);
-        // db.ArrayPolarEntityToModelSpace(c1.Id, 5, new Point3d(0, 0, 0), 180);
-        // }
+            db.AddEntityToModelSpace(c1);
+
+            db.AddEntityToModelSpace(array);
+        }
+
+        [CommandMethod("ArrayDemo3")]
+        public static void ArrayDemo3()
+        {
+            // 检查测试环形阵列时对象朝向
+
+            ObjectId objectId = db.AddPolygonToModelSpace(new Point3d(100, 0, 0), 30, 4, 0);
+
+            db.ArrayPolarEntityToModelSpace(objectId, 8, new Point3d(0, 0, 0), 360);
+        }
+
     }
 
 }

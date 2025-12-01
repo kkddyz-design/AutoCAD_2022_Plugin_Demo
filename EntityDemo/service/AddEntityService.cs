@@ -26,10 +26,13 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             double radius = center.GetDistanceBetweenTwoPoint(startPoint);
 
             // 获取起点角度
-            double startAngle = center.GetAngleToXAxis(startPoint);
+            double startDegree = center.GetAngleToXAxis(startPoint);
+
+            double startRadian = startDegree.DegreeToRadian();
+            double endRadian = (startDegree + degree).DegreeToRadian();
 
             // 声明圆弧对象
-            Arc arc = new Arc(center, radius, startAngle, startAngle + degree.DegreeToRadian());
+            Arc arc = new Arc(center, radius, startRadian, endRadian);
             return db.AddEntityToModelSpace(arc);
         }
 
@@ -60,9 +63,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 // Vector3d xVector = new Vector3d(1, 0, 0);
 
                 // 通过GetAngleTo得到两个向量之间的夹角
-                // double startAngle = xVector.GetAngleTo(startVector);
+                // double startDegree = xVector.GetAngleTo(startVector);
                 // double endAngle = xVector.GetAngleTo(endVector);
-                // startAngle == cArc.StartAngle ; EndAngle ==  cArc.EndAngle
+                // startDegree == cArc.StartAngle ; EndAngle ==  cArc.EndAngle
                 #endregion
 
                 // 将数据层和工具层分开,Arc内部只需要和db交互的数据,和基于这些数据的函数
@@ -237,7 +240,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         /*
          * 绘制多边形
          */
-        public static ObjectId AddPolygonToModelSpace(this Database db, Point3d center, double radius, int sideNum, double startAngle)
+        public static ObjectId AddPolygonToModelSpace(this Database db, Point3d center, double radius, int sideNum, double startDegree)
         {
             if(sideNum < 3)
             {
@@ -253,8 +256,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 // - 2 * Math.PI 是一个完整的圆周角
                 // - 除以 sideNum 得到每个顶点之间的角度间隔
                 // - 乘以 i 得到当前顶点的角度偏移量
-                // - i = 0, angle = startAngle = 90°
-                double angle = startAngle + (i * 2 * Math.PI / sideNum);
+                // - i = 0, angle = startDegree = 90°
+                double angle = startDegree.DegreeToRadian() + (i * 2 * Math.PI / sideNum);
 
                 // 使用三角函数计算顶点在笛卡尔坐标系中的坐标
                 double x = center.X + radius * Math.Cos(angle);
@@ -267,6 +270,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
 
             pl.Closed = true;
             return db.AddEntityToModelSpace(pl);
+        }
+
+        /*
+         * 默认让多边形朝上指定startAngle = 90 度
+         */
+
+        public static ObjectId AddPolygonToModelSpace(this Database db, Point3d center, double radius, int sideNum)
+        {
+            double startDegree = 90;
+            return db.AddPolygonToModelSpace(center, radius, sideNum, startDegree);
         }
 
 
