@@ -127,8 +127,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         public static Entity[] ArrayPolarEntityToModelSpace(
             this Database db,
             ObjectId entityId,
-            int num,
             Point3d center,
+            int num,
             double totalDegree
         )
         {

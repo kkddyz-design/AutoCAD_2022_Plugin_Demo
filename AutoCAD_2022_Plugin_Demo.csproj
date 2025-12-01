@@ -143,9 +143,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="EntityDemo\domain\entity\Polygon.cs" />
+    <Compile Include="EntityDemo\domain\entity\Rectangle.cs" />
     <Compile Include="EntityDemo\service\AddEntityService.cs" />
     <Compile Include="EntityDemo\DBTools.cs" />
-    <Compile Include="EntityDemo\domain\EntityModifiers.cs" />
+    <Compile Include="EntityDemo\domain\EntityModifier.cs" />
     <Compile Include="EntityDemo\test\ModifyEntityDemo.cs" />
     <Compile Include="EntityDemo\service\ModifyEntityService.cs" />
     <Compile Include="EntityDemo\domain\GeometryTools.cs" />

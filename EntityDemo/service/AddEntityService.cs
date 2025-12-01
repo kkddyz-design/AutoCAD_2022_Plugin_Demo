@@ -137,7 +137,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
          * 以这两个点的连线为 “轴”，自动计算长轴、短轴比例（ratio = 纵差/横差）
          * 快速通过两个点 “大致” 画椭圆，但短轴由两点的纵横比决定（不够灵活）
          */
-
         public static ObjectId AddEllipseToModelSpace(this Database db, Point3d point1, Point3d point2)
         {
             // 椭圆的圆心
@@ -238,52 +237,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         }
 
         /*
-         * 绘制多边形
-         */
-        public static ObjectId AddPolygonToModelSpace(this Database db, Point3d center, double radius, int sideNum, double startDegree)
-        {
-            if(sideNum < 3)
-            {
-                return ObjectId.Null;
-            }
-
-            Polyline pl = new Polyline();
-
-            // 循环计算顶点坐标
-            for(int i = 0; i < sideNum; i++)
-            {
-                // 计算当前顶点对应的角度（弧度）
-                // - 2 * Math.PI 是一个完整的圆周角
-                // - 除以 sideNum 得到每个顶点之间的角度间隔
-                // - 乘以 i 得到当前顶点的角度偏移量
-                // - i = 0, angle = startDegree = 90°
-                double angle = startDegree.DegreeToRadian() + (i * 2 * Math.PI / sideNum);
-
-                // 使用三角函数计算顶点在笛卡尔坐标系中的坐标
-                double x = center.X + radius * Math.Cos(angle);
-                double y = center.Y + radius * Math.Sin(angle);
-
-                // 创建Point2d对象
-                Point2d vertex = new Point2d(x, y);
-                pl.AddVertexAt(i, vertex, 0, 0, 0);
-            }
-
-            pl.Closed = true;
-            return db.AddEntityToModelSpace(pl);
-        }
-
-        /*
-         * 默认让多边形朝上指定startAngle = 90 度
-         */
-
-        public static ObjectId AddPolygonToModelSpace(this Database db, Point3d center, double radius, int sideNum)
-        {
-            double startDegree = 90;
-            return db.AddPolygonToModelSpace(center, radius, sideNum, startDegree);
-        }
-
-
-        /*
          * 绘制折线多段线 ： bulge = 0，宽度固定
          */
         public static ObjectId AddPolylineToModelSpace(this Database db, bool isClosed, double width, params Point2d[] vertices)
@@ -301,37 +254,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
 
             pl.Closed = isClosed;    // 是否闭合
             pl.ConstantWidth = width;// 多段线宽度
-
-            return db.AddEntityToModelSpace(pl);
-        }
-
-
-        /*
-         * 2点绘制矩形
-         * 本质：通过多段线绘制直线
-         * X1,Y2 ----------------- X2,Y2
-         * |                         |
-         * |                         |           
-         * X1,Y1 ----------------- X2,Y1
-         */
-        public static ObjectId AddRectangleToModelSpace(this Database db, Point2d leftDown, Point2d rightUp)
-        {
-            double X1 = leftDown.X;
-            double Y1 = leftDown.Y;
-            double X2 = rightUp.X;
-            double Y2 = rightUp.Y;
-
-            Point2d leftUp = new Point2d(X1, Y2);
-            Point2d rightDown = new Point2d(X2, Y1);
-
-            Polyline pl = new Polyline();
-            pl.AddVertexAt(0, leftDown, 0, 0, 0);
-            pl.AddVertexAt(1, rightDown, 0, 0, 0);
-            pl.AddVertexAt(2, rightUp, 0, 0, 0);
-            pl.AddVertexAt(3, leftUp, 0, 0, 0);
-
-            // 一定要设置闭合,不然虽然顶点收尾重合了,但是不会产生闭合曲线
-            pl.Closed = true;
 
             return db.AddEntityToModelSpace(pl);
         }

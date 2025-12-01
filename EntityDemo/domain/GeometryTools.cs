@@ -1,6 +1,7 @@
 ﻿/*
  * 提供几何相关工具方法
  */
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
@@ -129,22 +130,83 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
          * 
          * 
          */
-        public static Point3d GetPosition(this Entity entity)
+        public static Point3d GetEntityPosition(this Entity entity)
         {
             // 1. 优先处理已知有明确 Position 或基准点的实体类型（性能最优）
-            return entity switch
-            {
-                Line line => line.StartPoint,                // 直线：取起点作为基准点
-                Circle circle => circle.Center,              // 圆：取圆心作为基准点
-                DBText dbText => dbText.Position,            // 单行文字：取插入点（Position 属性）
-                MText mText => mText.Location,               // 多行文字：取插入点（Location 属性，无 Position）
-                Polyline polyline => polyline.StartPoint,    // 多段线：取起点
-                BlockReference blockRef => blockRef.Position,// 块参照：取插入点
-                Arc arc => arc.Center,                       // 圆弧：取圆心
-                Ellipse ellipse => ellipse.Center,           // 椭圆：取圆心
-                DBPoint point => point.Position,             // 点实体：取自身位置
-                _ => GetFallbackPosition(entity)             // 其他类型：使用 fallback 逻辑
-            };
+            // return entity switch
+            // {
+            // Line line => line.StartPoint,                // 直线：取起点作为基准点
+            // Circle circle => circle.Center,              // 圆：取圆心作为基准点
+            // Rectangle rectangle => rectangle.Center,     // 矩形,取中心
+            // Polygon polygon => polygon.polygonCenter,    // 多边形,取中心
+            // DBText dbText => dbText.Position,            // 单行文字：取插入点（Position 属性）
+            // MText mText => mText.Location,               // 多行文字：取插入点（Location 属性，无 Position）
+            // Polyline polyline => polyline.StartPoint,    // 多段线：取起点
+            // BlockReference blockRef => blockRef.Position,// 块参照：取插入点
+            // Arc arc => arc.Center,                       // 圆弧：取圆心
+            // Ellipse ellipse => ellipse.Center,           // 椭圆：取圆心
+            // DBPoint point => point.Position,             // 点实体：取自身位置
+            // _ => GetFallbackPosition(entity)             // 其他类型：使用 fallback 逻辑
+            // };
+            // 1. 直线：取起点
+            if(entity is Line line) {
+                return line.StartPoint;
+            }
+
+            // 2. 圆：取圆心
+            else if(entity is Circle circle) {
+                return circle.Center;
+            }
+
+            // 3. 矩形（子类，优先于 Polyline）：取中心
+            else if(entity is Rectangle rectangle) {
+                return rectangle.Center;
+            }
+
+            // 4. 多边形（子类，优先于 Polyline）：取中心
+            else if(entity is Polygon polygon) {
+                return polygon.polygonCenter;
+            }
+
+            // 5. 单行文字：取插入点
+            else if(entity is DBText dbText) {
+                return dbText.Position;
+            }
+
+            // 6. 多行文字：取插入点
+            else if(entity is MText mText) {
+                return mText.Location;
+            }
+
+            // 7. 多段线（父类，放在子类后面）：取起点
+            else if(entity is Polyline polyline) {
+                return polyline.StartPoint;
+            }
+
+            // 8. 块参照：取插入点
+            else if(entity is BlockReference blockRef) {
+                return blockRef.Position;
+            }
+
+            // 9. 圆弧：取圆心
+            else if(entity is Arc arc) {
+                return arc.Center;
+            }
+
+            // 10. 椭圆：取圆心
+            else if(entity is Ellipse ellipse) {
+                return ellipse.Center;
+            }
+
+            // 11. 点实体：取自身位置
+            else if(entity is DBPoint point) {
+                return point.Position;
+            }
+
+            // 12. 其他类型：使用 fallback 逻辑
+            else {
+                return GetFallbackPosition(entity);
+            }
         }
 
         // Fallback 逻辑：处理未知类型，尝试反射获取 Position/Location，最后用边界框中心
@@ -192,7 +254,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
         {
             Point3d entityBasePoint; // 实体的基准点（根据类型动态获取）
 
-            entityBasePoint = entity.GetPosition();
+            entityBasePoint = entity.GetEntityPosition();
 
             // 2. 计算基准点到环形中心点的距离 根号下x^2+y^2
             return Math.Sqrt(
@@ -222,6 +284,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
                 default:
                     return 0; // 默认朝向0°
             }
+        }
+
+        /*
+         * 将point3d转换为point2d
+         */
+        public static Point2d ToPoint2d(this Point3d point)
+        {
+            return new Point2d(point.X, point.Y);
         }
 
     }

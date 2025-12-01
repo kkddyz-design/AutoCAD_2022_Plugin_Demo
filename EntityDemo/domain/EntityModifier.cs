@@ -18,7 +18,7 @@ using System.Linq;
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
 {
 
-    public static class EntityModifiers
+    public static class EntityModifier
     {
         /*
          * updater返回值：编辑操作产生的新对象
@@ -252,6 +252,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
             return resultEntities;
         }
 
+        [Obsolete("由于自定义类型对象存入db后类型被擦除，因而无法获得子类实现的getPositon()，导致矩形和多边形阵列时是以多段线起点作为基点")]
         /// <summary>
         /// 目前这个函数的问题在于，使用多段线时,期望获得的position是物体的几何中心,但是目前是设置为多段线起点 。 之后封装多边形扩展polyline，重新复写getPosition方法
         /// </summary>
@@ -284,7 +285,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
                 ? totalDegree / num                     // 闭合阵列：步长 = 总角度 ÷ 数量
                 : totalDegree / (num - 1);              // 非闭合阵列：步长 = 总角度 ÷ (数量-1)
 
-            Point3d originPosition = originEntity.GetPosition();
+            Point3d originPosition = originEntity.GetEntityPosition();
             double originRadius = centerPoint.DistanceTo(originPosition);
             double startAngleDegree = centerPoint.GetAngleToXAxis(originPosition);
 

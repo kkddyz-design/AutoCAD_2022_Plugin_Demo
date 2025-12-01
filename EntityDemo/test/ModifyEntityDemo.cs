@@ -1,4 +1,5 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
 using Autodesk.AutoCAD.ApplicationServices;
@@ -87,10 +88,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             // 创建三角形
             Point3d center = new Point3d(100, 100, 0);
 
-            // 直接在数据库创建对象,在demo层面不知道内存创建的对象
-            ObjectId objId = db.AddPolygonToModelSpace(center, 100, 3, Math.PI / 2);
+            //// 直接在数据库创建对象,在demo层面不知道内存创建的对象
+            // ObjectId objId = db.AddPolygonToModelSpace(center, 100, 3, Math.PI / 2);
 
-            db.UpdateEntityToModelSpace(objId, originalEntity => EntityModifiers.RotateEntity(originalEntity, center, 90));
+            // db.UpdateEntityToModelSpace(objId, originalEntity => EntityModifier.RotateEntity(originalEntity, center, 90));
         }
 
 
@@ -157,10 +158,17 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         public static void ArrayDemo3()
         {
             // 检查测试环形阵列时对象朝向
+            // Polygon polygon = new Polygon(new Point3d(100, 0, 0), 30, 4);
 
-            ObjectId objectId = db.AddPolygonToModelSpace(new Point3d(100, 0, 0), 30, 4, 0);
+            // db.AddEntityToModelSpace(polygon);
+            // db.ArrayPolarEntityToModelSpace(polygon.Id, new Point3d(0, 0, 0), 4, 360);
 
-            db.ArrayPolarEntityToModelSpace(objectId, 8, new Point3d(0, 0, 0), 360);
+            Rectangle rectangle = new Rectangle(new Point3d(75, -25, 0), new Point3d(125, 25, 0));
+
+            if(rectangle is Rectangle) {
+                db.AddEntityToModelSpace(rectangle);
+                db.ArrayPolarEntityToModelSpace(rectangle.Id, new Point3d(0, 0, 0), 4, 360);
+            }
         }
 
     }

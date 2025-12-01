@@ -2,6 +2,7 @@
  * 学习图形绘制 即Entity对象的操作
  */
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
 using Autodesk.AutoCAD.ApplicationServices;
@@ -109,7 +110,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             ObjectIdCollection objIds = new ObjectIdCollection();
             objIds.Add(db.AddCircleToModelSpace(new Point3d(100, 100, 0), 100));
             string hatchGradientName = HatchTools.HatchGradientName.gr_invcylinder;
-            db.HatchGradient(2, 6, HatchTools.HatchGradientName.gr_hemisperical, db.AddRectangleToModelSpace(new Point2d(100, 100), new Point2d(500, 300)));
+            db.HatchGradient(2, 6, HatchTools.HatchGradientName.gr_hemisperical,
+                db.AddEntityToModelSpace(new Rectangle(new Point3d(100, 100, 0), new Point3d(500, 300, 0))));
         }
 
         /*
@@ -232,9 +234,26 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         [CommandMethod("PolygonDemo1")]
         public static void PolygonDemo1()
         {
-            // 多边形顶点从90°开始
-            db.AddPolygonToModelSpace(new Point3d(0, 0, 0), 100, 6, Math.PI / 2);
-            db.AddPolygonToModelSpace(new Point3d(200, 200, 0), 100, 3, Math.PI / 2);
+            Point3d center1 = new Point3d(100, 100, 0);
+            Point3d center2 = new Point3d(200, 100, 0);
+            Point3d center3 = new Point3d(300, 100, 0);
+            Point3d center4 = new Point3d(400, 100, 0);
+            Point3d center5 = new Point3d(500, 100, 0);
+            Point3d center6 = new Point3d(600, 100, 0);
+
+            Polygon polygon1 = new Polygon(center1, 50, 3);
+            Polygon polygon2 = new Polygon(center2, 50, 4);
+            Polygon polygon3 = new Polygon(center3, 50, 5);
+            Polygon polygon4 = new Polygon(center4, 50, 6);
+            Polygon polygon5 = new Polygon(center5, 50, 7);
+            Polygon polygon6 = new Polygon(center6, 50, 8);
+
+            db.AddEntityToModelSpace(polygon1);
+            db.AddEntityToModelSpace(polygon2);
+            db.AddEntityToModelSpace(polygon3);
+            db.AddEntityToModelSpace(polygon4);
+            db.AddEntityToModelSpace(polygon5);
+            db.AddEntityToModelSpace(polygon6);
         }
 
 
@@ -296,10 +315,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         [CommandMethod("RecDemo1")]
         public static void RecDemo1()
         {
-            Point2d leftDown = new Point2d(100, 100);
-            Point2d rightUp = new Point2d(400, 200);
+            Point3d leftDown = new Point3d(100, 100, 0);
+            Point3d rightUp = new Point3d(400, 200, 0);
 
-            db.AddRectangleToModelSpace(leftDown, rightUp);
+            Point3d targetPoint = new Point3d(1000, 1000, 0);
+            Rectangle rect = new Rectangle(leftDown, rightUp);
+            db.AddEntityToModelSpace(rect);
+
+            db.MoveEntityToModelSpace(rect.Id, rect.GetPosition(), targetPoint);
         }
 
     }
