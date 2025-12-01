@@ -253,58 +253,63 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
         }
 
 
-        // 环形阵列函数：围绕指定中心点，生成num个实体，分布在totalDegree角度范围内
-        public static Entity[] ArrayPolarEntity(this Entity originEntity, int num, double totalDegree, Point3d centerPoint)
-        {
-            // 1. 参数检验（与原矩形阵列风格一致）
-            if(originEntity == null) {
-                throw new ArgumentNullException(nameof(originEntity), "原始实体对象不能为空。");
-            }
-            if(num <= 1) {
-                throw new ArgumentOutOfRangeException(nameof(num), "阵列数量必须大于1。");
-            }
-            if(totalDegree <= 0 || totalDegree > 360) {
-                throw new ArgumentOutOfRangeException(nameof(totalDegree), "总角度必须在(0, 360]范围内。");
-            }
+        //// 环形阵列函数：围绕指定中心点，生成num个实体(包括原对象)，分布在totalDegree角度范围内
+        // public static Entity[] ArrayPolarEntity(this Entity originEntity, Point3d centerPoint, int num, double totalDegree)
+        // {
+        // // 1. 参数检验（与原矩形阵列风格一致）
+        // if(originEntity == null) {
+        // throw new ArgumentNullException(nameof(originEntity), "原始实体对象不能为空。");
+        // }
+        // if(num <= 1) {
+        // throw new ArgumentOutOfRangeException(nameof(num), "阵列数量必须大于1。");
+        // }
+        // if(totalDegree <= 0 || totalDegree > 360) {
+        // throw new ArgumentOutOfRangeException(nameof(totalDegree), "总角度必须在(0, 360]范围内。");
+        // }
 
-            // 2. 初始化变量
-            Entity[] resultEntities = new Entity[num];
-            double radianPerStep = (totalDegree * Math.PI / 180) / (num - 1); // 每个实体的角度步长（弧度）
-            double originDist = originEntity.GetEntityDistanceToCenter(centerPoint); // 原始实体到中心点的距离
+        // // 2. 初始化变量
+        // Entity[] resultEntities = new Entity[num];
+        // double radianPerStep = (totalDegree * Math.PI / 180) / (num - 1); // 每个实体的角度步长（弧度）
+        // double originDist = originEntity.GetEntityDistanceToCenter(centerPoint); // 原始实体到中心点的距离
 
-            // 3. 遍历生成每个环形实体
-            for(int i = 0; i < num; i++) {
-                // 克隆原始实体
-                Entity clonedEntity = originEntity.Clone() as Entity;
-                if(clonedEntity == null) {
-                    throw new Exception("克隆实体失败。");
-                }
+        // // 获取原对象的弧度
 
-                // 计算当前实体的角度（弧度）
-                double currentRadian = i * radianPerStep;
+        // double startDegree = originEntity.GetPosition().GetAngleToXAxis(centerPoint);
+        // double startRadian = startDegree.DegreeToRadian(); // -180°对应的不是0,弧度换算的时候是不是有损的
 
-                // 步骤1：计算平移向量（极坐标转直角坐标）
-                double x = centerPoint.X + originDist * Math.Cos(currentRadian);
-                double y = centerPoint.Y + originDist * Math.Sin(currentRadian);
-                Vector3d translationVec = new Vector3d(x - originEntity.GetPosition().X, y - originEntity.GetPosition().Y, 0);
+        // // 3. 遍历生成每个环形实体
+        // // i==0表示原对象
+        // for(int i = 1; i < num; i++) {
+        // // 克隆原始实体
+        // Entity clonedEntity = originEntity.Clone() as Entity;
+        // if(clonedEntity == null) {
+        // throw new Exception("克隆实体失败。");
+        // }
 
-                // 步骤2：创建平移矩阵（将实体移动到目标位置）
-                Matrix3d translationMatrix = Matrix3d.Displacement(translationVec);
+        // // 计算当前实体的弧度
+        // double currentRadian = i * radianPerStep + startRadian;
 
-                // 步骤3：创建旋转矩阵（实体随环形角度旋转）
-                Matrix3d rotationMatrix = Matrix3d.Rotation(currentRadian, Vector3d.ZAxis, centerPoint);
+        // // 步骤1：计算平移向量（极坐标转直角坐标）
+        // double x = centerPoint.X + originDist * Math.Cos(currentRadian);
+        // double y = centerPoint.Y + originDist * Math.Sin(currentRadian);
+        // Vector3d translationVec = new Vector3d(x - originEntity.GetPosition().X, y - originEntity.GetPosition().Y, 0);
 
-                // 步骤4：合并矩阵并应用到实体
-                Matrix3d finalMatrix = translationMatrix * rotationMatrix;
-                clonedEntity.TransformBy(finalMatrix);
+        // // 步骤2：创建平移矩阵（将实体移动到目标位置）
+        // Matrix3d translationMatrix = Matrix3d.Displacement(translationVec);
 
-                // 存入结果数组
-                resultEntities[i] = clonedEntity;
-            }
+        // // 步骤3：创建旋转矩阵（实体随环形角度旋转）
+        // Matrix3d rotationMatrix = Matrix3d.Rotation(currentRadian, Vector3d.ZAxis, centerPoint);
 
-            return resultEntities;
-        }
+        // // 步骤4：合并矩阵并应用到实体
+        // Matrix3d finalMatrix = translationMatrix * rotationMatrix;
+        // clonedEntity.TransformBy(finalMatrix);
 
+        // // 存入结果数组
+        // resultEntities[i] = clonedEntity;
+        // }
+
+        // return resultEntities;
+        // }
     }
 
 }

@@ -42,8 +42,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             Arc arc2 = new Arc(
                 new Point3d(200, 200, 0),
                 100,
-                startDegree.DegreeToAngle(),
-                endDegree.DegreeToAngle()
+                startDegree.DegreeToRadian(),
+                endDegree.DegreeToRadian()
             );
 
             // 将圆弧写入db

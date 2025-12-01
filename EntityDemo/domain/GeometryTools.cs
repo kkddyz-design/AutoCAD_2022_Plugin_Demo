@@ -4,7 +4,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
-using System.Reflection;
 
 
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
@@ -14,7 +13,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
     {
 
         // 扩展double实现弧度转换角度
-        public static double AngleToDegree(this double angle)
+        public static double RadianToDegree(this double angle)
         {
             return angle * 180 / Math.PI;
         }
@@ -39,7 +38,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
         }
 
         // 扩展double实现角度转换弧度
-        public static double DegreeToAngle(this double degree)
+        public static double DegreeToRadian(this double degree)
         {
             return degree * Math.PI / 180;
         }
@@ -87,8 +86,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
          */
         public static Point3d GetEndPoint(this Point3d startPoint, double length, double degree)
         {
-            double X = startPoint.X + (length * Math.Cos(degree.DegreeToAngle()));
-            double Y = startPoint.Y + (length * Math.Sin(degree.DegreeToAngle()));
+            double X = startPoint.X + (length * Math.Cos(degree.DegreeToRadian()));
+            double Y = startPoint.Y + (length * Math.Sin(degree.DegreeToRadian()));
             Point3d endPoint = new Point3d(X, Y, 0);
             return endPoint;
         }
@@ -129,36 +128,38 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
         // Fallback 逻辑：处理未知类型，尝试反射获取 Position/Location，最后用边界框中心
         private static Point3d GetFallbackPosition(Entity entity)
         {
-            Type entityType = entity.GetType();
-            string entityTypeName = entityType.Name;
+            return new Point3d(0, 0, 0);
 
-            // 2. 尝试通过反射获取常见的位置属性（Position 或 Location）
-            PropertyInfo positionProp = entityType.GetProperty("Position", typeof(Point3d));
-            if(positionProp != null && positionProp.CanRead) {
-                return (Point3d)positionProp.GetValue(entity);
-            }
+            // Type entityType = entity.GetType();
+            // string entityTypeName = entityType.Name;
 
-            PropertyInfo locationProp = entityType.GetProperty("Location", typeof(Point3d));
-            if(locationProp != null && locationProp.CanRead) {
-                return (Point3d)locationProp.GetValue(entity);
-            }
+            //// 2. 尝试通过反射获取常见的位置属性（Position 或 Location）
+            // PropertyInfo positionProp = entityType.GetProperty("Position", typeof(Point3d));
+            // if(positionProp != null && positionProp.CanRead) {
+            // return (Point3d)positionProp.GetValue(entity);
+            // }
 
-            // 3. 反射获取失败，使用实体的边界框中心作为最终 fallback（通用性最强）
-            try {
-                Extents3d extents = entity.GeometricExtents;
-                return new Point3d(
-                    (extents.MinPoint.X + extents.MaxPoint.X) / 2,
-                    (extents.MinPoint.Y + extents.MaxPoint.Y) / 2,
-                    extents.MinPoint.Z // 保留 Z 坐标（2D 实体 Z 通常为 0）
-                );
-            }
-            catch(Exception ex) {
-                // 极端情况：边界框获取失败（理论极少出现），抛出明确异常
-                throw new NotSupportedException(
-                    $"实体类型 {entityTypeName} 不支持 Position/Location 属性，且无法获取边界框。",
-                    ex
-                );
-            }
+            // PropertyInfo locationProp = entityType.GetProperty("Location", typeof(Point3d));
+            // if(locationProp != null && locationProp.CanRead) {
+            // return (Point3d)locationProp.GetValue(entity);
+            // }
+
+            //// 3. 反射获取失败，使用实体的边界框中心作为最终 fallback（通用性最强）
+            // try {
+            // Extents3d extents = entity.GeometricExtents;
+            // return new Point3d(
+            // (extents.MinPoint.X + extents.MaxPoint.X) / 2,
+            // (extents.MinPoint.Y + extents.MaxPoint.Y) / 2,
+            // extents.MinPoint.Z // 保留 Z 坐标（2D 实体 Z 通常为 0）
+            // );
+            // }
+            // catch(Exception ex) {
+            // // 极端情况：边界框获取失败（理论极少出现），抛出明确异常
+            // throw new NotSupportedException(
+            // $"实体类型 {entityTypeName} 不支持 Position/Location 属性，且无法获取边界框。",
+            // ex
+            // );
+            // }
         }
         /*
          * 计算原始实体到中心点的距离（以实体的基点为例，可根据需求调整）

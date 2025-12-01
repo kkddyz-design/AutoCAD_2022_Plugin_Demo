@@ -30,7 +30,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 
             // 先写入,再修改
             db.AddEntityToModelSpace(c1);
-            db.ChangeEntityColor(c1.Id, 6);
+            db.ChangeColorToModelSpace(c1.Id, 6);
 
             // 先修改,再写入
             c2.ChangeColor(6);
@@ -60,7 +60,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             // 先写入db,再修改
             Circle c1 = new Circle(center, new Vector3d(0, 0, 1), 50);
             db.AddEntityToModelSpace(c1);
-            Entity c2 = db.CopyEntity(c1.Id, center, targetCenter);
+            Entity c2 = db.CopyEntityToModelSpace(c1.Id, center, targetCenter);
         }
 
 
@@ -136,17 +136,21 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 
             db.AddEntityToModelSpace(c1);
 
-            c1.ArrayRectEntity(3, 4, 100, 100);
+            Entity[] entities = c1.ArrayRectEntity(3, 4, 100, 100);
+
+            db.AddEntityToModelSpace(entities);
         }
 
-        [CommandMethod("ArrayDemo2")]
-        public static void ArrayDemo2()
-        {
-            Circle c1 = new Circle(new Point3d(100, 100, 0), new Vector3d(0, 0, 1), 50);
+        // [CommandMethod("ArrayDemo2")]
+        // public static void ArrayDemo2()
+        // {
+        // // 将c1绕原点整列6个
+        // Circle c1 = new Circle(new Point3d(100, 0, 0), new Vector3d(0, 0, 1), 30);
+        // Entity[] array = c1.ArrayPolarEntity(new Point3d(0, 0, 0), 5, 180);
 
-            db.AddEntityToModelSpace(c1);
-        }
-
+        // db.AddEntityToModelSpace(c1);
+        // db.ArrayPolarEntityToModelSpace(c1.Id, 5, new Point3d(0, 0, 0), 180);
+        // }
     }
 
 }

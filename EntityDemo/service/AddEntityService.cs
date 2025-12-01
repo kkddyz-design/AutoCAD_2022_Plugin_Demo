@@ -29,7 +29,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             double startAngle = center.GetAngleToXAxis(startPoint);
 
             // 声明圆弧对象
-            Arc arc = new Arc(center, radius, startAngle, startAngle + degree.DegreeToAngle());
+            Arc arc = new Arc(center, radius, startAngle, startAngle + degree.DegreeToRadian());
             return db.AddEntityToModelSpace(arc);
         }
 
@@ -86,7 +86,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         )
         {
             return db.AddEntityToModelSpace(
-                new Arc(center, radius, startDegree.DegreeToAngle(), endDegree.DegreeToAngle())
+                new Arc(center, radius, startDegree.DegreeToRadian(), endDegree.DegreeToRadian())
             );
         }
 
@@ -191,10 +191,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         {
             // 计算相关参数
             double ratio = shortRadius / majorRadius;
-            Vector3d majorAxis = new Vector3d(majorRadius * Math.Cos(degere.DegreeToAngle()), majorRadius * Math.Sin(degere.DegreeToAngle()), 0);
+            Vector3d majorAxis = new Vector3d(majorRadius * Math.Cos(degere.DegreeToRadian()), majorRadius * Math.Sin(degere.DegreeToRadian()), 0);
 
             // 声明椭圆对象
-            Ellipse elli = new Ellipse(center, Vector3d.ZAxis, majorAxis, ratio, startDegree.DegreeToAngle(), endDegree.DegreeToAngle());
+            Ellipse elli = new Ellipse(center, Vector3d.ZAxis, majorAxis, ratio, startDegree.DegreeToRadian(), endDegree.DegreeToRadian());
             return db.AddEntityToModelSpace(elli);
         }
 
