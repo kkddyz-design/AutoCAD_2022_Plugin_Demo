@@ -142,6 +142,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockTools.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\domain\entity\Polygon.cs" />
     <Compile Include="EntityDemo\domain\entity\Rectangle.cs" />
@@ -155,10 +156,11 @@
     <Compile Include="EntityDemo\HatchTools.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TableDemo\TableTools.cs" />
+    <Compile Include="TableDemo\test\TableTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="EntityDemo\readme.md" />
+    <None Include="readme.md" />
     <None Include="packages.config" />
     <None Include="start.scr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

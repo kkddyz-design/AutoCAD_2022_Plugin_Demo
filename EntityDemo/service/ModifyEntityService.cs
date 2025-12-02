@@ -1,6 +1,7 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using System;
 
 
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
@@ -124,6 +125,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                                                          originalEntity.ArrayRectEntity(row, col, distRow, distCol));
         }
 
+        [Obsolete]
         public static Entity[] ArrayPolarEntityToModelSpace(
             this Database db,
             ObjectId entityId,

@@ -142,6 +142,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddEntityToModelSpace(entities);
         }
 
+        [Obsolete]
         [CommandMethod("ArrayDemo2")]
         public static void ArrayDemo2()
         {
@@ -154,6 +155,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddEntityToModelSpace(array);
         }
 
+        [Obsolete]
         [CommandMethod("ArrayDemo3")]
         public static void ArrayDemo3()
         {
