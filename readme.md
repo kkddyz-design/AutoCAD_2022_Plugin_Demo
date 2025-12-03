@@ -5,8 +5,6 @@
 
 
 
-
-
 ## 架构逻辑
 
 
@@ -251,4 +249,16 @@ public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entit
 ```
 
 
+
+
+
+## 带图形的gui插件
+
+不要搞多个项目，就把项目按照
+
+调用Autocad的acad模块
+
+提供用户界面及交互的GUI模块
+
+通用部分common模块
 

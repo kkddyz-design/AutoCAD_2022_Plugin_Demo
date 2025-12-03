@@ -230,6 +230,33 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
+        public static Entity GetEntityFromModelSpace(this Database db, ObjectId entityId)
+        {
+            // 1. 输入参数有效性检查
+            if(db == null) {
+                throw new ArgumentNullException(nameof(db), "数据库对象不能为空。");
+            }
+            if(entityId.IsNull || !entityId.IsValid) {
+                throw new ArgumentException($"实体ID无效 (IsNull: {entityId.IsNull}, IsValid: {entityId.IsValid})。", nameof(entityId));
+            }
+
+            Entity entity;
+            using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                try {
+                    // 2.1 以Write模式打开原实体 并转换为Entity类型
+                    entity = trans.GetObject(entityId, OpenMode.ForWrite) as Entity;
+                }
+                catch(Exception ex) {
+                    trans.Abort();
+                    Debug.WriteLine($"获取实体失败: {ex.Message}");
+                    throw ex;
+                }
+            }
+
+            return entity;
+        }
+
+
         public static bool DeleteEntityToModelSpace(this Database db, ObjectId entityId)
         {
             // 1. 输入参数有效性检查
