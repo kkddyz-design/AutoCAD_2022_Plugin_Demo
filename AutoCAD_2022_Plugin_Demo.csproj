@@ -144,6 +144,8 @@
   <ItemGroup>
     <Compile Include="EntityDemo\BlockTools.cs" />
     <Compile Include="Commands.cs" />
+    <Compile Include="EntityDemo\domain\block\BlockDemo.cs" />
+    <Compile Include="EntityDemo\domain\block\RectPlate.cs" />
     <Compile Include="EntityDemo\domain\entity\Polygon.cs" />
     <Compile Include="EntityDemo\domain\entity\Rectangle.cs" />
     <Compile Include="EntityDemo\service\AddEntityService.cs" />

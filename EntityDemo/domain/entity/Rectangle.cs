@@ -24,7 +24,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity
         /// <summary>
         /// 基础构造函数（私有，禁止外部直接调用，确保必须通过带参构造初始化）
         /// </summary>
-        private Rectangle() : base()
+        public Rectangle() : base()
         {
         }
 

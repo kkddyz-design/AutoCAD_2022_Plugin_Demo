@@ -1,5 +1,7 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -15,6 +17,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
     public static class DBTools
     {
 
+        #region 添加Entity
         public static ObjectId AddEntityToModelSpace(this Database db, Entity entity)
         {
             /*
@@ -62,36 +65,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
-        /*
-         * params 是 C# 中的一个关键字，它允许方法接收可变数量的参数，这些参数会被自动封装成一个数组。
-         * 没有 params 的情况下，如果你想让方法支持添加 1 个、2 个或多个实体，你可能需要编写多个重载方法：
-         * 这显然非常繁琐且不灵活。
-         *
-         * params 的使用方式：
-         *  1.传入单个实体
-         *  Line line = new Line(...);
-         *  db.AddEntityToModelSpace(line);
-         *
-         *  2.传入多个实体，用逗号分隔
-         *  Line line1 = new Line(...);
-         *  Circle circle = new Circle(...);
-         *  Text text = new Text(...);
-         *  db.AddEntityToModelSpace(line1, circle, text);
-         *
-         *  3.传入一个实体数组
-         *  Entity[] entities = new Entity[]
-         *  { new Line(...),new Circle(...),new Text(...)};
-         *  db.AddEntityToModelSpace(entities);
-         *
-         *  编译器会自动将前两种方式（传入单个或多个实体）转换为第三种方式
-         *
-         *  使用 params 的注意事项：
-         *  1.params 参数必须是方法的最后一个参数。
-         *  2.一个方法只能有一个 params 参数。
-         *
-         *   方法内部如何处理entitys：
-         *   在方法内部，entitys 参数的类型是 Entity[]（一个 Entity 数组）。你可以像处理普通数组一样遍历它
-         */
         public static ObjectId[] AddEntityToModelSpace(this Database db, params Entity[] entitys)
         {
             // 非空检查
@@ -142,6 +115,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
+        #endregion
+
+        #region 编辑Entity
         public static Entity[] UpdateEntityToModelSpace(this Database db, ObjectId entityId, Func<Entity, Entity[]> updater)
         {
             // 1. 输入参数有效性检查
@@ -230,6 +206,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
             }
         }
 
+        #endregion
+
+        #region 查询/删除Entity
         public static Entity GetEntityFromModelSpace(this Database db, ObjectId entityId)
         {
             // 1. 输入参数有效性检查
@@ -313,6 +292,98 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
                     throw ex;
                 }
             }
+        }
+        #endregion
+
+        #region 块表
+
+        /// <summary>
+        /// 添加块表记录
+        /// </summary>
+        /// <param name="db">数据库</param>
+        /// <param name="btrName">块表名</param>
+        /// <param name="entityList">块中的实体对象</param>
+        /// <returns>ObjectId</returns>
+        public static ObjectId AddBlockTableRecord(this Database db, string btrName, List<Entity> entityList)
+        {
+            ObjectId btrId = ObjectId.Null;
+
+            using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForWrite) as BlockTable;
+                BlockTableRecord btr = new BlockTableRecord();
+
+                if(!bt.Has(btrName)) {
+                    // 1. 创建新的块表记录（块定义）
+
+                    btr.Name = btrName;         // 必须给块命名（否则块表无法识别）
+                    btr.Origin = Point3d.Origin;// 块原点（默认设为(0,0,0)，方便插入定位）
+
+                    // 2. 遍历实体列表，添加到块中
+                    for(int i = 0; i < entityList.Count; i++) {
+                        // 将单个实体（如矩形、文字、属性定义）“添加到块表记录的实体集合中”，建立 “块→实体” 的归属关系
+                        btr.AppendEntity(entityList[i]);
+                    }
+
+                    // 3. 将新块表记录添加到块表
+                    btrId = bt.Add(btr); // 把块添加到块表，返回块的ObjectId
+                    trans.AddNewlyCreatedDBObject(btr, true); // 注册块表记录到数据库
+                }
+                trans.Commit();
+            }
+
+            return btrId;
+        }
+
+        /// <summary>
+        /// 向模型空间插入块参照
+        /// </summary>
+        /// <param name="db">数据库</param>
+        /// <param name="btrId">块引用</param>
+        /// <param name="position">插入位置</param>
+        /// <returns>失败返回 ObjectId.Null</returns>
+        public static ObjectId AddBlockReferenceToModelSpace(this Database db, ObjectId btrId, Point3d position)
+        {
+            ObjectId refId = ObjectId.Null;
+
+            if(btrId == ObjectId.Null) {
+                return refId;
+
+                // throw new Exception("当前块未定义");
+            }
+            using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForWrite) as BlockTable;
+
+                if(bt.Has(btrId)) {
+                    BlockReference blockRef = new BlockReference(position, btrId);
+
+                    // 打开模型空间
+                    BlockTableRecord modelSpace = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                    // 添加块引用
+                    refId = modelSpace.AppendEntity(blockRef);
+                    trans.AddNewlyCreatedDBObject(blockRef, true);
+                }
+
+                trans.Commit();
+            }
+
+            return refId;
+        }
+
+        public static ObjectId GetBlockIdByName(this Database db, string btrName)
+        {
+            ObjectId btrId = ObjectId.Null;
+
+            using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForWrite) as BlockTable;
+
+                if(bt.Has(btrName)) {
+                    btrId = bt[btrName];
+                }
+            }
+
+            return btrId;
+            #endregion
         }
 
     }

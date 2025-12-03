@@ -127,11 +127,11 @@ namespace AutoCAD_2022_Plugin_Demo.interactionDemo
 
         #region 仿直线命令
 
-        [CommandMethod("LineDemo")]
+        [CommandMethod("MyLine1")]
         /// <summary>
         /// 仿直线命令
         /// </summary>
-        public static void LineDemo()
+        public static void  MyLine1()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
