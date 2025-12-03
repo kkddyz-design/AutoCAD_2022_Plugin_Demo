@@ -259,39 +259,44 @@ namespace AutoCAD_2022_Plugin_Demo.interactionDemo
         }
         #endregion
 
-        // #region 仿圆命令
-        // [CommandMethod("CircleDemo")]
-        // public static void CircleDemo()
-        // {
-        // Database database = HostApplicationServices.WorkingDatabase;
-        // Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        #region 仿圆命令
+        [CommandMethod("MyCircle1")]
+        public static void MyCircle1()
+        {
+            Database db = HostApplicationServices.WorkingDatabase;
+            Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
 
-        // Point3d center = new Point3d();
+            #region 获取圆心
+            Point3d center = new Point3d();
 
-        // PromptPointOptions ppOptions = new PromptPointOptions("\n 请指定圆心：");
+            PromptPointOptions ppOptions = new PromptPointOptions("\n 请指定圆心");
+            PromptPointResult pointResult = ed.GetPoint(ppOptions);
+            if(pointResult.Status == PromptStatus.OK) {
+                center = pointResult.Value;
+            }
+            if(pointResult.Status == PromptStatus.Cancel) {
+                return;
+            }
 
-        // PromptPointResult pointResult = ed.GetPoint(ppOptions);
+            #endregion
 
-        // if(pointResult.Status == PromptStatus.OK) {
-        // center = pointResult.Value;
-        // }
+            CircleJig circleJig = new CircleJig(center);
 
-        // /*
-        // * CAD 二次开发中，用户输入距离的场景很常见（例如：绘制指定长度的直线、偏移指定距离的对象）。
-        // * PromptDistanceOptions 的核心是封装输入交互的规则和提示信息，配合 Editor.GetDistance() 方法使用，最终获取用户输入的有效距离值。
-        // */
+            // PromptResult.value是Point3d
+            // EntityJig子类对象中sampler方法获得的距离只是临时的，不会返回。
+            // 因而这里PromptResult只会返回基类，而不是任何子类。
+            // 提供GetCircle,直接返回circleJig.Entity
+            PromptResult promptResult = ed.Drag(circleJig);
 
-        // PromptDistanceOptions pdOptions = new PromptDistanceOptions("\n 请指定半径上一点");
-        // pdOptions.UseBasePoint = true;
-        // pdOptions.BasePoint = center;
+            if(promptResult.Status == PromptStatus.OK) {
+                db.AddEntityToModelSpace(circleJig.GetCircle());
+            }
+            else {
+                // do nothing
+            }
+        }
+        #endregion
 
-        // PromptDoubleResult distanceResult = ed.GetDistance(pdOptions);
-
-        // if(distanceResult.Status == PromptStatus.OK) {
-        // double dist = distanceResult.Value;
-        // }
-        // }
-        // #endregion
     }
 
 }

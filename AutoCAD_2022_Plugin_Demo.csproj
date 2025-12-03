@@ -155,6 +155,7 @@
     <Compile Include="EntityDemo\test\AddEntityDemo.cs" />
     <Compile Include="EntityDemo\HatchTools.cs" />
     <Compile Include="Initialization.cs" />
+    <Compile Include="interactionDemo\CircleJig.cs" />
     <Compile Include="interactionDemo\PromptTools.cs" />
     <Compile Include="interactionDemo\MyCommand.cs" />
     <Compile Include="interactionDemo\Test.cs" />
