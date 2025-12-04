@@ -317,6 +317,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo
 
                     btr.Name = btrName;         // 必须给块命名（否则块表无法识别）
                     btr.Origin = Point3d.Origin;// 块原点（默认设为(0,0,0)，方便插入定位）
+                    // btr中的Entity位置都是相对于btr.Origin
+                    // 插入块参照时,btr.Origin = position(入参)
 
                     // 2. 遍历实体列表，添加到块中
                     for(int i = 0; i < entityList.Count; i++) {
