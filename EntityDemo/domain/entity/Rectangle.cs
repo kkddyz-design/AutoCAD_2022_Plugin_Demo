@@ -160,11 +160,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity
 
         #region 公共方法
         /// <summary>
-        /// 获取矩形中心点作为位置（重写/明确自身方法，避免和父类混淆）
+        /// 获取矩形左下角作为位置（重写/明确自身方法，避免和父类混淆）
         /// </summary>
         public Point3d GetPosition()
         {
-            return Center;
+            return _lowerLeftCorner;
         }
 
         /// <summary>

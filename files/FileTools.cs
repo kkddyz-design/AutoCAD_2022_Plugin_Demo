@@ -106,11 +106,14 @@ namespace AutoCAD_2022_Plugin_Demo.files
         }
 
         /// <summary>
-        /// 在txt写入圆的参数,读取创建圆对象
+        /// 从TXT文件中读取,传入一个转换器将contents转换成Entity[]
         /// </summary>
-        [CommandMethod("ReadFromTXT")]
-        public static void ReadFromTXT()
+        /// 转换失败返回null
+        [CommandMethod("ReadEntityFromTXT")]
+        public static Entity[] ReadEntityFromTXT(Func<string[], Entity[]> convertor)
         {
+            Entity[] entities = null;
+
             // 选择文件
             WinFroms.OpenFileDialog openFileDialog = new WinFroms.OpenFileDialog()
             {
@@ -126,15 +129,14 @@ namespace AutoCAD_2022_Plugin_Demo.files
 
             if(dialogResult == WinFroms.DialogResult.OK) {
                 // 读取文件数据
+                string[] contents = File.ReadAllLines(openFileDialog.FileName)
+                        .Where(line => !string.IsNullOrWhiteSpace(line)) // 排除空行/仅含空白字符的行
+                        .ToArray();
 
-                string[] contents = File.ReadAllLines(openFileDialog.FileName);
-
-                TxtData[] txtDatas = TransData(contents);
-
-                for(int i = 0; i < txtDatas.Length; i++) {
-                    db.CreateEntityByTxtData(txtDatas[i]);
-                }
+                entities = convertor.Invoke(contents);
             }
+
+            return entities;
         }
 
     }
