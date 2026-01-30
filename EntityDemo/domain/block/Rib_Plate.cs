@@ -45,22 +45,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             string rectSpce,
             double ribPlateThick,
             double buttomMagrin,
-            string upperDistance,
+            double upperDistance,
             double cnt,
             double textHeight,
             double textMargin
         )
         {
-            // 定义int类型的"上中心距" 
-            double upperDistanceInt = -1;
-
-            // 参数校验 
-            if(!upperDistance.Equals("-")) {
-                upperDistanceInt = double.Parse(upperDistance);
-            }
+            //// 参数校验 
+            // if(!upperDistance.Equals("-")) {
+            // upperDistanceInt = double.Parse(upperDistance);
+            // }
 
             // 定义块名
-            blockName = $"Rib_Plate_{OD}_{H}_{material}_{ribPlateThick}_{cnt}_{buttomMagrin}_{upperDistanceInt}";
+            blockName = $"Rib_Plate_{OD}_{H}_{material}_{ribPlateThick}_{cnt}_{buttomMagrin}_{upperDistance}";
 
             // 创建OD圆
             Circle od_circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), OD / 2);
@@ -81,17 +78,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             Rectangle bRect = new Rectangle(new Point3d(-rectL / 2, h_line_end.Y, 0), rectL, rectH);
 
             // 创建肋板侧边线
-            double sideLineStart_x = rectL / 2 - buttomMagrin;
-            double sideLineStart_y = bRect.LowerLeftCorner.Y + rectH;
 
             // 侧边线起点
+            double sideLineStart_x = rectL / 2 - buttomMagrin;
+            double sideLineStart_y = bRect.LowerLeftCorner.Y + rectH;
             Point3d sideLineStart = new Point3d(sideLineStart_x, sideLineStart_y, 0);
 
-            // 通过几何求交得到侧边线终点 sideLineStart为起点的直线与offset_circle的交点
+            // 通过几何求交得到侧边线终点
 
-            // 构造垂直向上的射线
+            Point3d sideRayStart = new Point3d(h_line_end.X + upperDistance, h_line_end.Y, 0);
+
+            // 构造垂直向上的射线 -- 用中心距
             Ray sideRay = new Ray();
-            sideRay.BasePoint = sideLineStart;
+            sideRay.BasePoint = sideRayStart;
             sideRay.UnitDir = new Vector3d(0, 1, 0).GetNormal(); // 垂直向上方向
 
             // 计算交点作为sideLineEnd

@@ -94,7 +94,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 string rectSpec = rowData[5];
                 double ribPlateThick = double.Parse(rowData[6]);
                 double buttomMatgin = double.Parse(rowData[7]);
-                string upperDistance = rowData[8];
+                double upperDistance = double.Parse(rowData[8]);
                 double cnt = double.Parse(rowData[9]);
 
                 double textHeight = 10;

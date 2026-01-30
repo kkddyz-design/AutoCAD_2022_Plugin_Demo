@@ -103,57 +103,117 @@ namespace AutoCAD_2022_Plugin_Demo.files
                 throw new NotSupportedException("仅支持.xlsx格式的Excel文件，不支持.xls旧格式");
             }
 
+            // try {
+            // // 2. 设置非商业许可证
+            // ExcelPackage.License.SetNonCommercialPersonal("kkddyz");
+
+            // // 3. 打开Excel文件（using自动释放文件句柄，避免文件被占用）
+            // using(var excelPackage = new ExcelPackage(new FileInfo(filePath))) {
+            // // 4. 获取指定名称的工作表
+            // ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[sheetName];
+            // if(worksheet == null) {
+            // throw new InvalidOperationException($"工作表【{sheetName}】不存在于Excel文件中");
+            // }
+
+            // // 5. 获取数据范围（自动识别有数据的行/列，避免空遍历）
+            // // 处理空工作表：Dimension为null表示无任何数据
+            // var dimension = worksheet.Dimension;
+            // if(dimension == null) {
+            // Console.WriteLine($"警告：工作表【{sheetName}】无任何数据");
+            // return excelData; // 返回空列表
+            // }
+
+            // // 6. 遍历所有行和列，填充数据到嵌套List
+            // int startRow = dimension.Start.Row;    // 数据起始行（通常是1）
+            // int endRow = dimension.End.Row;        // 数据结束行
+            // int startCol = dimension.Start.Column; // 数据起始列（通常是1）
+            // int endCol = dimension.End.Column;     // 数据结束列
+
+            // for(int row = startRow; row <= endRow; row++) {
+            // // 存储当前行的所有列数据
+            // var rowData = new List<string>();
+            // for(int col = startCol; col <= endCol; col++) {
+            // // 读取单元格值：Text=格式化文本，Value=原始值（按需选择）
+            // // ?? "" 处理空单元格，避免null值
+            // string cellValue = worksheet.Cells[row, col].Text?.Trim() ?? string.Empty;
+            // rowData.Add(cellValue);
+            // }
+
+            // // 跳过全空的行
+            // if(rowData.Count > 0 && !rowData.TrueForAll(string.IsNullOrEmpty)) {
+            // excelData.Add(rowData);
+            // }
+            // }
+            // }
+
+            // // Console.WriteLine($"成功读取Excel文件【{filePath}】的工作表【{sheetName}】，共{excelData.Count}行有效数据");
+            // }
+            // catch(System.Exception ex) {
+            // // 异常兜底：打印详细信息并抛出，便于上层处理
+            // Console.WriteLine($"读取Excel数据失败：{ex.Message}");
+            // throw; // 抛出异常让调用方感知，也可根据需求返回空列表
+            ////}
+
             try {
                 // 2. 设置非商业许可证
                 ExcelPackage.License.SetNonCommercialPersonal("kkddyz");
 
-                // 3. 打开Excel文件（using自动释放文件句柄，避免文件被占用）
-                using(var excelPackage = new ExcelPackage(new FileInfo(filePath))) {
-                    // 4. 获取指定名称的工作表
-                    ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[sheetName];
-                    if(worksheet == null) {
-                        throw new InvalidOperationException($"工作表【{sheetName}】不存在于Excel文件中");
-                    }
-
-                    // 5. 获取数据范围（自动识别有数据的行/列，避免空遍历）
-                    // 处理空工作表：Dimension为null表示无任何数据
-                    var dimension = worksheet.Dimension;
-                    if(dimension == null) {
-                        Console.WriteLine($"警告：工作表【{sheetName}】无任何数据");
-                        return excelData; // 返回空列表
-                    }
-
-                    // 6. 遍历所有行和列，填充数据到嵌套List
-                    int startRow = dimension.Start.Row;    // 数据起始行（通常是1）
-                    int endRow = dimension.End.Row;        // 数据结束行
-                    int startCol = dimension.Start.Column; // 数据起始列（通常是1）
-                    int endCol = dimension.End.Column;     // 数据结束列
-
-                    for(int row = startRow; row <= endRow; row++) {
-                        // 存储当前行的所有列数据
-                        var rowData = new List<string>();
-                        for(int col = startCol; col <= endCol; col++) {
-                            // 读取单元格值：Text=格式化文本，Value=原始值（按需选择）
-                            // ?? "" 处理空单元格，避免null值
-                            string cellValue = worksheet.Cells[row, col].Text?.Trim() ?? string.Empty;
-                            rowData.Add(cellValue);
+                // ==============================================
+                // 核心修改：创建无缓存的FileStream，替代默认FileInfo
+                // 关键配置：禁用缓存 + 允许共享读写 + 自动释放流
+                // ==============================================
+                using(var fileStream = new FileStream(
+                    path: filePath,
+                    mode: FileMode.Open,          // 打开现有文件
+                    access: FileAccess.Read,      // 仅读模式（符合Excel读取需求）
+                    share: FileShare.ReadWrite,   // 允许其他程序同时读写（修改Excel后不被占用）
+                    bufferSize: 4096,             // 标准缓冲区大小
+                    options: FileOptions.SequentialScan | FileOptions.WriteThrough // 禁用.NET缓存，强制读磁盘
+                )) {
+                    // 3. 打开Excel文件：传入无缓存的FileStream，而非FileInfo
+                    using(var excelPackage = new ExcelPackage(fileStream)) {
+                        // 4. 获取指定名称的工作表（原有逻辑不变）
+                        ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[sheetName];
+                        if(worksheet == null) {
+                            throw new InvalidOperationException($"工作表【{sheetName}】不存在于Excel文件中");
                         }
 
-                        // 跳过全空的行
-                        if(rowData.Count > 0 && !rowData.TrueForAll(string.IsNullOrEmpty)) {
-                            excelData.Add(rowData);
+                        // 5. 获取数据范围（自动识别有数据的行/列，避免空遍历）
+                        var dimension = worksheet.Dimension;
+                        if(dimension == null) {
+                            Console.WriteLine($"警告：工作表【{sheetName}】无任何数据");
+                            return excelData; // 返回空列表
                         }
-                    }
+
+                        // 6. 遍历所有行和列，填充数据到嵌套List（原有逻辑不变）
+                        int startRow = dimension.Start.Row;
+                        int endRow = dimension.End.Row;
+                        int startCol = dimension.Start.Column;
+                        int endCol = dimension.End.Column;
+
+                        for(int row = startRow; row <= endRow; row++) {
+                            var rowData = new List<string>();
+                            for(int col = startCol; col <= endCol; col++) {
+                                // 读取单元格文本，空单元格转空字符串，去除首尾空格
+                                string cellValue = worksheet.Cells[row, col].Text?.Trim() ?? string.Empty;
+                                rowData.Add(cellValue);
+                            }
+
+                            // 跳过全空的行（原有逻辑不变）
+                            if(rowData.Count > 0 && !rowData.TrueForAll(string.IsNullOrEmpty)) {
+                                excelData.Add(rowData);
+                            }
+                        }
+                    } // excelPackage释放 → fileStream自动释放（双层using保证资源释放）
                 }
 
                 // Console.WriteLine($"成功读取Excel文件【{filePath}】的工作表【{sheetName}】，共{excelData.Count}行有效数据");
             }
             catch(System.Exception ex) {
-                // 异常兜底：打印详细信息并抛出，便于上层处理
+                // 异常兜底：打印详细信息并抛出，便于上层处理（原有逻辑不变）
                 Console.WriteLine($"读取Excel数据失败：{ex.Message}");
-                throw; // 抛出异常让调用方感知，也可根据需求返回空列表
+                throw;
             }
-
             return excelData;
         }
 
