@@ -1,14 +1,14 @@
-﻿using AutoCAD_2022_Plugin_Demo.EntityDemo;
-using AutoCAD_2022_Plugin_Demo.files;
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using AutoCAD_2022_Plugin_Demo.files;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
+using OfficeOpenXml;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using WinFroms = System.Windows.Forms;
+using acad_AppService = Autodesk.AutoCAD.ApplicationServices;
+using WinForms = System.Windows.Forms;
+
 
 [assembly: CommandClass(typeof(FileTools))]
 
@@ -16,127 +16,145 @@ using WinFroms = System.Windows.Forms;
 namespace AutoCAD_2022_Plugin_Demo.files
 {
 
+    /// <summary>
+    /// 这个类专门用于从数据源读取数据，仅仅封装读取的原始数据，而不包括数据格式转换等。
+    /// </summary>
     public static  class FileTools
     {
 
-        public static Database db = Application.DocumentManager.MdiActiveDocument.Database;
+        public static Database db = acad_AppService.Application.DocumentManager.MdiActiveDocument.Database;
 
-        public struct TxtData
-        {
-
-            public Point3d position;
-            public double radisu;
-
-        }
-
-        // 将传入的contents数组转换为struct TxtData
-        public static TxtData[] TransData(string[] contents)
-        {
-            TxtData[] txtDatas = new TxtData[contents.Length];
-
-            // 遍历传入的contents
-            for(int i = 0; i < contents.Length; i++) {
-                // 将一行数据用','分隔
-                string[] args = contents[i].Split(new char[] { ',' });
-
-                // 用args创建TxtData
-
-                double X, Y, Z; // 解析坐标
-                double.TryParse(args[0], out X);
-                double.TryParse(args[1], out Y);
-                double.TryParse(args[2], out Z);
-                txtDatas[i].position = new Point3d(X, Y, Z);
-
-                double R;
-                double.TryParse(args[3], out R);
-                txtDatas[i].radisu = R;
-            }
-
-            return txtDatas;
-        }
-
-        public static void CreateEntityByTxtData(this Database db, TxtData txtData)
-        {
-            Circle circle = new Circle();
-            circle.Center = txtData.position;
-            circle.Radius = txtData.radisu;
-
-            db.AddEntityToModelSpace(circle);
-        }
-
-        [CommandMethod("WriteToTXT")]
-        public static void WriteToTXT()
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-            Editor editor = doc.Editor;
-
-            string filePath = "E:\\desktop\\";
-            string fileName = "test";
-
-            // 使用system.windows.form中的对话框
-            WinFroms.SaveFileDialog saveFileDialog = new WinFroms.SaveFileDialog();
-            saveFileDialog.Title = "保存图形数据";
-            saveFileDialog.Filter = "文本文件(*.txt)|*.txt";    //  设置保存类型
-            saveFileDialog.InitialDirectory = filePath; // 设置保存路径
-            saveFileDialog.FileName = fileName;         // 设置默认文件名
-
-            // string filename = db.Filename;           // 获取dwg文件绝对路径
-
-            // 点击，处理返回结果
-            WinFroms.DialogResult dialogResult = saveFileDialog.ShowDialog();
-
-            if(dialogResult == WinFroms.DialogResult.OK) {
-                // 进行文件处理   
-                /*
-                 * File.WriteAllLines 是 System.IO 命名空间下的静态方法，
-                 * 用于一次性将字符串数组（或可枚举的字符串集合）写入指定文件，
-                 * 核心特性是：若文件不存在，自动创建；若已存在，覆盖原有内容；
-                 * 写入完成后自动关闭文件，无需手动释放资源；
-                 * 每行字符串对应文件中的一行（自动添加换行符）
-                 * 
-                 */
-
-                // 模拟读取当前dwg中的数据
-                string[] contents = new string[] { "1111", "22222" };
-
-                // 写入TXT文件
-                File.WriteAllLines(saveFileDialog.FileName, contents);
-            }
-        }
 
         /// <summary>
-        /// 从TXT文件中读取,传入一个转换器将contents转换成Entity[]
+        /// 通过OpenFileDialog选择文件
         /// </summary>
-        /// 转换失败返回null
-        [CommandMethod("ReadEntityFromTXT")]
-        public static Entity[] ReadEntityFromTXT(Func<string[], Entity[]> convertor)
+        /// <returns></returns>
+        public static string OpenFile()
         {
-            Entity[] entities = null;
-
             // 选择文件
-            WinFroms.OpenFileDialog openFileDialog = new WinFroms.OpenFileDialog()
+            WinForms.OpenFileDialog openFileDialog = new WinForms.OpenFileDialog()
             {
                 Title = "打开文件",
 
-                Filter = "文本文件(*.txt)|*.txt",
+                Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
 
                 InitialDirectory = "E:\\desktop\\",
             };
 
             // 显示Form
-            WinFroms.DialogResult dialogResult = openFileDialog.ShowDialog();
+            WinForms.DialogResult dialogResult = openFileDialog.ShowDialog();
 
-            if(dialogResult == WinFroms.DialogResult.OK) {
-                // 读取文件数据
-                string[] contents = File.ReadAllLines(openFileDialog.FileName)
+            if(dialogResult == WinForms.DialogResult.OK) {
+                return openFileDialog.FileName;
+            }
+            else {
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// 按行读取txt中的数据
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        /// <returns>contents[i]表示每一行数据;如果读取失败返回空数组</returns>
+        public static string[] readTxtData(string filePath)
+        {
+            string[] contents = new string[] { };
+
+            // 读取文件数据
+            if(filePath != string.Empty) {
+                contents = File.ReadAllLines(filePath)
                         .Where(line => !string.IsNullOrWhiteSpace(line)) // 排除空行/仅含空白字符的行
                         .ToArray();
-
-                entities = convertor.Invoke(contents);
             }
 
-            return entities;
+            return contents;
+        }
+
+        /// <summary>
+        /// 读取指定Excel文件、指定工作表的所有数据到嵌套List中
+        /// </summary>
+        /// <param name="filePath">Excel文件绝对路径（仅支持.xlsx）</param>
+        /// <param name="sheetName">要读取的工作表名称（如"Sheet1"）</param>
+        /// <returns>二维列表：外层List=行，内层List=列；空列表=无数据/读取失败</returns>
+        /// <exception cref="FileNotFoundException">文件不存在</exception>
+        /// <exception cref="NotSupportedException">文件格式不是.xlsx</exception>
+        /// <exception cref="ArgumentException">工作表名称为空/无效</exception>
+        /// <exception cref="InvalidOperationException">工作表不存在</exception>
+        public static List<List<string>> ReadExcelData(string filePath, string sheetName)
+        {
+            // 初始化返回容器
+            var excelData = new List<List<string>>();
+
+            // 1. 入参校验（提前拦截无效输入）
+            if(string.IsNullOrWhiteSpace(filePath)) {
+                throw new ArgumentNullException(nameof(filePath), "Excel文件路径不能为空");
+            }
+
+            if(string.IsNullOrWhiteSpace(sheetName)) {
+                throw new ArgumentNullException(nameof(sheetName), "工作表名称不能为空");
+            }
+
+            if(!File.Exists(filePath)) {
+                throw new FileNotFoundException("指定的Excel文件不存在", filePath);
+            }
+
+            if(Path.GetExtension(filePath).Trim().ToLower() != ".xlsx") {
+                throw new NotSupportedException("仅支持.xlsx格式的Excel文件，不支持.xls旧格式");
+            }
+
+            try {
+                // 2. 设置非商业许可证
+                ExcelPackage.License.SetNonCommercialPersonal("kkddyz");
+
+                // 3. 打开Excel文件（using自动释放文件句柄，避免文件被占用）
+                using(var excelPackage = new ExcelPackage(new FileInfo(filePath))) {
+                    // 4. 获取指定名称的工作表
+                    ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[sheetName];
+                    if(worksheet == null) {
+                        throw new InvalidOperationException($"工作表【{sheetName}】不存在于Excel文件中");
+                    }
+
+                    // 5. 获取数据范围（自动识别有数据的行/列，避免空遍历）
+                    // 处理空工作表：Dimension为null表示无任何数据
+                    var dimension = worksheet.Dimension;
+                    if(dimension == null) {
+                        Console.WriteLine($"警告：工作表【{sheetName}】无任何数据");
+                        return excelData; // 返回空列表
+                    }
+
+                    // 6. 遍历所有行和列，填充数据到嵌套List
+                    int startRow = dimension.Start.Row;    // 数据起始行（通常是1）
+                    int endRow = dimension.End.Row;        // 数据结束行
+                    int startCol = dimension.Start.Column; // 数据起始列（通常是1）
+                    int endCol = dimension.End.Column;     // 数据结束列
+
+                    for(int row = startRow; row <= endRow; row++) {
+                        // 存储当前行的所有列数据
+                        var rowData = new List<string>();
+                        for(int col = startCol; col <= endCol; col++) {
+                            // 读取单元格值：Text=格式化文本，Value=原始值（按需选择）
+                            // ?? "" 处理空单元格，避免null值
+                            string cellValue = worksheet.Cells[row, col].Text?.Trim() ?? string.Empty;
+                            rowData.Add(cellValue);
+                        }
+
+                        // 跳过全空的行
+                        if(rowData.Count > 0 && !rowData.TrueForAll(string.IsNullOrEmpty)) {
+                            excelData.Add(rowData);
+                        }
+                    }
+                }
+
+                // Console.WriteLine($"成功读取Excel文件【{filePath}】的工作表【{sheetName}】，共{excelData.Count}行有效数据");
+            }
+            catch(System.Exception ex) {
+                // 异常兜底：打印详细信息并抛出，便于上层处理
+                Console.WriteLine($"读取Excel数据失败：{ex.Message}");
+                throw; // 抛出异常让调用方感知，也可根据需求返回空列表
+            }
+
+            return excelData;
         }
 
     }

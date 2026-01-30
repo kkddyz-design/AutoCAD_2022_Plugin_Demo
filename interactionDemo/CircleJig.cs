@@ -25,7 +25,7 @@ namespace AutoCAD_2022_Plugin_Demo.interactionDemo
 
 
         /*
-         * 在构造函数中设置this.Entity.center;在update()中设置this.Entity.radisu
+         * 在构造函数中设置this.Entity.center;在update()中设置this.Entity.radius
          * constructor() {Entity.Center = center(入参)}
          * sampler(){jr = NewR } ==> update(){ Entity.r = jr}
          */

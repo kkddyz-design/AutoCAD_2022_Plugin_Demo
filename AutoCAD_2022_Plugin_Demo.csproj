@@ -130,8 +130,11 @@
   <ItemGroup>
     <Compile Include="EntityDemo\BlockTools.cs" />
     <Compile Include="Commands.cs" />
+    <Compile Include="EntityDemo\domain\BlockConvertorImpl.cs" />
+    <Compile Include="EntityDemo\domain\block\AbstractBlock.cs" />
     <Compile Include="EntityDemo\domain\block\BlockDemo.cs" />
-    <Compile Include="EntityDemo\domain\block\RectPlate.cs" />
+    <Compile Include="EntityDemo\domain\block\Rect_Plate.cs" />
+    <Compile Include="EntityDemo\domain\block\Rib_Plate.cs" />
     <Compile Include="EntityDemo\domain\entity\Polygon.cs" />
     <Compile Include="EntityDemo\domain\entity\Rectangle.cs" />
     <Compile Include="EntityDemo\domain\FormatTools.cs" />
@@ -152,6 +155,7 @@
     <Compile Include="interactionDemo\MyCommand.cs" />
     <Compile Include="interactionDemo\Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WinFroms\SaveFileDialog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

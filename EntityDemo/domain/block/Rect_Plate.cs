@@ -3,33 +3,14 @@ using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 {
 
-    public class RectPlate
+    public class Rect_Plate : AbstractBlock
     {
-
-        public string blockName { get; set; }
-
-        /// <summary>
-        /// 板厚
-        /// </summary>
-        public int thick { get; set; }
-
-        /// <summary>
-        /// 数量
-        /// </summary>
-        public int count { get; set; }
-
-        /// <summary>
-        /// 块定义
-        /// </summary>
-        public List<Entity> entityList = new List<Entity>();
-
 
         /// <summary>
         /// 后续传入一个TextStyle指定边距,颜色,高度
@@ -41,7 +22,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         /// <param name="count"></param>
         /// <param name="remark">标注</param>
         /// 整体分布:左下规格 居中 数量 右上 remark 
-        public RectPlate(double width, double height, int thick, int count, string remarkStr)
+        public Rect_Plate(double width, double height, int thick, int count, string remarkStr)
         {
             double textHeight = 15;
             double textMargin = 10;

@@ -57,9 +57,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         public static void ArcDemo2()
         {
             // 三点必须不共线
-            Point3d startPoint = new Point3d(100, 100, 0);
-            Point3d midPoint = new Point3d(120, 120, 0);
-            Point3d endPoint = new Point3d(150, 150, 0);
+            Point3d startPoint = new Point3d(0, -50, 0);
+            Point3d midPoint = new Point3d(50, 0, 0);
+            Point3d endPoint = new Point3d(0, 50, 0);
 
             db.AddArcToModelSpace(startPoint, midPoint, endPoint);
         }
@@ -74,6 +74,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             double degree = 90;
 
             db.AddArcToModelSpace(center, startPoint, degree);
+        }
+
+        [CommandMethod("ArcDemo4")]
+        public static void ArcDemo4()
+        {
+            Point3d startPoint = new Point3d(40, -34, 0);
+            Point3d midPoint = new Point3d(0, -50.5, 0);
+            Point3d endPoint = new Point3d(-40, -34, 0);
+
+            db.AddArcToModelSpace(startPoint, midPoint, endPoint);
         }
 
 
