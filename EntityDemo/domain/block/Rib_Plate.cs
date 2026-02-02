@@ -116,19 +116,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             DBText countText = new DBText();
             countText.TextString = $"+={cnt}";
 
-            countText.HorizontalMode = TextHorizontalMode.TextLeft;     // 水平左对齐
+            countText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
             countText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             countText.Height = textHeight / 2;
-            countText.AlignmentPoint = new Point3d(Rib_Plate_Position.X + textMargin, Rib_Plate_Position.Y + Rib_Plate_H / 2, 0);
+            countText.AlignmentPoint = new Point3d(h_line_end.X, Rib_Plate_Position.Y + Rib_Plate_H / 2, 0);
 
             // 创建文本-thick
             DBText thickText = new DBText();
             thickText.TextString = $"*={ribPlateThick}";
 
-            thickText.HorizontalMode = TextHorizontalMode.TextLeft;     // 水平左对齐
+            thickText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
             thickText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             thickText.Height = textHeight / 2;
-            thickText.AlignmentPoint = new Point3d(Rib_Plate_Position.X + textMargin, Rib_Plate_Position.Y + Rib_Plate_H / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
+            thickText.AlignmentPoint = new Point3d(h_line_end.X, Rib_Plate_Position.Y + Rib_Plate_H / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
 
             // 创建文本-H
             DBText HText = new DBText();
@@ -137,7 +137,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             HText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             HText.Height = textHeight;
 
-            HText.AlignmentPoint = new Point3d(h_line_end.X, h_line_end.Y + rectH + textHeight, 0);
+            HText.AlignmentPoint = new Point3d(h_line_end.X, h_line_end.Y + rectH + textHeight * 1.6, 0);
 
             // 创建文本-OD
             DBText ODText = new DBText();
@@ -161,13 +161,13 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             double endAngel = GeometryTools.DegreeToRadian(GeometryTools.GetAngleToXAxis(Point3d.Origin, sideLine.EndPoint));
 
             Arc ribPlate_arc = new Arc(cArc.Center, cArc.Radius, startAngel, endAngel);
-            entityList.Add(ribPlate_arc);
 
             // 加入entitiess数组
             entityList.Add(sideLine);
             entityList.Add(mirrored_sideLine);
-
             entityList.Add(ribPlateButtomLine);
+            entityList.Add(ribPlate_arc);
+
             entityList.Add(countText);
             entityList.Add(thickText);
             entityList.Add(ODText);
@@ -175,6 +175,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             // 坐标平移 以mirrored_sideLine.startPoint作为原点
             entityList.MoveEntity(mirrored_sideLine.StartPoint, Point3d.Origin);
+
+            // 特殊材质-设置颜色
+            if(!material.Equals("碳钢")) {
+                entityList.SetEntityListColor(6);
+            }
         }
 
 

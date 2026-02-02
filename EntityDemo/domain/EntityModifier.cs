@@ -44,9 +44,46 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
             return new Entity[0];
         }
 
-        /*
-         * 获得拷贝后的新实体
-         */
+        /// <summary>
+        /// 为实体列表中所有实体统一设置ACI索引色
+        /// </summary>
+        /// <param name="entityList">需要设置颜色的CAD实体列表</param>
+        /// <param name="colorIndex">ACI颜色索引（有效值：1-255，1=红/6=洋红/5=蓝等）</param>
+        /// <returns>设置完颜色后的实体列表（与原列表引用一致，无新创建）</returns>
+        /// <exception cref="ArgumentNullException">实体列表为null时抛出</exception>
+        /// <exception cref="ArgumentOutOfRangeException">ACI颜色索引超出1-255范围时抛出</exception>
+        public static List<Entity> SetEntityListColor(this List<Entity> entityList, short colorIndex)
+        {
+            // 1. 校验实体列表是否为null，避免空引用异常
+            if(entityList == null) {
+                throw new ArgumentNullException(nameof(entityList), "CAD实体列表不能为null！");
+            }
+
+            // 2. 校验ACI颜色索引合法性（CAD的ACI索引有效范围为1-255）
+            if(colorIndex < 1 || colorIndex > 255) {
+                throw new ArgumentOutOfRangeException(nameof(colorIndex), $"ACI颜色索引必须为1-255的整数，当前传入：{colorIndex}");
+            }
+
+            // 3. 构建CAD颜色对象（纠正ByAci为正确的Aci枚举）
+            Color targetColor = Color.FromColorIndex(ColorMethod.ByAci, colorIndex);
+
+            // 4. 遍历列表，为每个非空实体设置颜色
+            foreach(var entity in entityList) {
+                // 跳过空实体，避免遍历中出现NullReferenceException
+                if(entity == null) {
+                    continue;
+                }
+
+                entity.Color = targetColor;
+            }
+
+            // 5. 返回设置后的实体列表（原列表引用，无额外内存开销）
+            return entityList;
+        }
+            /*
+             * 获得拷贝后的新实体
+             */
+
         public static Entity[] CopyEntity(this Entity originEntity, Point3d basePoint, Point3d targetPoint)
         {
             // 输入参数有效性检查

@@ -79,8 +79,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddRectPlateToModelSpaceByTxt();
         }
 
-        [CommandMethod("TestReadExcel")]
-        public static void TestReadExcel()
+        [CommandMethod("AddLeiBan")]
+        public static void AddRibPlateByExcel()
         {
             db.AddRibPlateToModelSpaceByExcel();
         }
