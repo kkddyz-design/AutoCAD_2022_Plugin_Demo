@@ -1,0 +1,40 @@
+[33m029735d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m HEAD@{0}: checkout: moving from 124dc36b89b7776002c648f015ad33e5ba40ab8d to master
+[33m124dc36[m HEAD@{1}: commit: 修改增加肋板命令的样式(数量板厚居中，调整OD/H的底边距,特殊材质修改颜色)
+[33m029735d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m HEAD@{2}: checkout: moving from master to 029735d136aecc0a61f52f719910052115989e2d
+[33m029735d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m HEAD@{3}: reset: moving to HEAD
+[33m029735d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m HEAD@{4}: commit: 将左下角作为插入点
+[33m1b9b7cc[m HEAD@{5}: commit: 增加肋板上中心距参数
+[33m382ca12[m[33m ([m[1;31morigin/master[m[33m)[m HEAD@{6}: commit: 完成J2肋板创建
+[33mcd0ab85[m HEAD@{7}: commit: 实现TXT读取数据批量创建实体
+[33mad8e13d[m HEAD@{8}: commit: 实现从txt读取参数,创建图形
+[33mbb8f8c4[m HEAD@{9}: commit: 文件交互
+[33m6fc9c34[m HEAD@{10}: commit: 块定义,块参照 DBTools接口
+[33mfbda17c[m HEAD@{11}: commit: 完成仿圆命令
+[33mf33f921[m HEAD@{12}: commit: 仿CAD直线命令
+[33m405a8ec[m HEAD@{13}: commit: 作为学习模板
+[33md4ec260[m HEAD@{14}: commit: 创建Rectangle,Polygon自定义类(未实现类型恢复)
+[33m1620df5[m HEAD@{15}: commit: 完成环形阵列
+[33m8b1f05d[m HEAD@{16}: commit: 统一service函数命名
+[33md912ae6[m HEAD@{17}: commit: 重构将业务层中判断对象已持久化部分删除
+[33m8806a79[m HEAD@{18}: commit: 移除不受控文件
+[33me81ed43[m HEAD@{19}: commit: 修改gitignore
+[33m7fbc841[m HEAD@{20}: commit: DB层添加Delete方法
+[33m1370855[m HEAD@{21}: commit: 重新按照domain,service,test划分文件
+[33m9674c31[m HEAD@{22}: commit: 重构modify部分代码，拆分成Model,db访问,业务层
+[33m2b4b867[m HEAD@{23}: commit: 更新Modify
+[33m2e095d7[m HEAD@{24}: commit: 添加changeColorDemo1，moveEntityDemo1
+[33ma7046b6[m HEAD@{25}: commit: 增加修改Entity颜色
+[33mbc708d3[m HEAD@{26}: commit: 添加HatchTools用于填充图形
+[33m08ced2a[m HEAD@{27}: commit: 将entity分为add modify两个子模块
+[33mb3134e2[m HEAD@{28}: commit: 多段线demo
+[33m2bdaec8[m HEAD@{29}: commit: 正常提交
+[33m986cba3[m HEAD@{30}: commit: 使用CodeRush格式化代码
+[33meb72bfb[m HEAD@{31}: commit: 安装csharpier后格式化所有文件
+[33mf0cd221[m HEAD@{32}: commit: 添加AddArc需要的tools方法
+[33m31f0a6c[m HEAD@{33}: commit: 完成EntityTools圆弧绘制接口
+[33me8bb9b7[m HEAD@{34}: commit: 三点绘制圆弧
+[33m296ef3f[m HEAD@{35}: commit: 直线demo完成
+[33mb3cd210[m HEAD@{36}: commit: 将Draw改名为Entity，EntityTools实现绘图逻辑,EntityDemo注册命令。Geometry中定义几何计算工具
+[33m71a32d0[m HEAD@{37}: commit: 将平台改为x64,避免 “处理器架构” 不匹配导致的警告。学习如何将对象写入AutoCAD数据库。
+[33m2f4cb3f[m HEAD@{38}: commit: 初始化AutoCad插件学习项目
+[33m010866f[m HEAD@{39}: commit (initial): 初始化AutoCad2022插件学习项目

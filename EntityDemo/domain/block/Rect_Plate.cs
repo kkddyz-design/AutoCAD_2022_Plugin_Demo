@@ -1,5 +1,4 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
-using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
@@ -13,16 +12,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
     {
 
         /// <summary>
-        /// 后续传入一个TextStyle指定边距,颜色,高度
+        /// 矩形下料
         /// </summary>
-        /// <param name="positon"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="thick"></param>
-        /// <param name="count"></param>
-        /// <param name="remark">标注</param>
-        /// 整体分布:左下规格 居中 数量 右上 remark 
-        public Rect_Plate(double width, double height, int thick, int count, string remarkStr)
+        /// <param name="width">矩形宽度</param>
+        /// <param name="height">矩形高度</param>
+        /// <param name="thick">矩形厚度</param>
+        /// <param name="count">数量</param>
+        /// <param name="material">材质</param>
+        public Rect_Plate(double width, double height, int thick, int count, string material)
         {
             double textHeight = 15;
             double textMargin = 10;
@@ -35,14 +32,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
                 exchange(ref width, ref height);
             }
 
-            if(remarkStr.Equals(string.Empty)) {
-                // 生成blockName 用RectPlate_width_height_thick_count命名块
-                blockName = $"Rectplate_{height}_{width}_{thick}_{count}";
-            }
-            else {
-                // 生成blockName 用RectPlate_width_height_thick_count命名块
-                blockName = $"Rectplate_{height}_{width}_{thick}_{count}_{remarkStr}";
-            }
+            blockName = $"Rectplate_{height}_{width}_{thick}_{count}_{material}";
 
             // 创建矩形 
             Rectangle rectangle = new Rectangle(Point3d.Origin, width, height);
@@ -72,17 +62,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             thickText.AlignmentPoint = new Point3d(textMargin * 2, height / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
 
             // 创建文本 remark 
-            DBText remarkText = new DBText();
-            remarkText.TextString = remarkStr;
-            remarkText.Height = textHeight;
+            // DBText remarkText = new DBText();
+            // remarkText.TextString = remarkStr;
+            // remarkText.Height = textHeight;
 
-            remarkText.HorizontalMode = TextHorizontalMode.TextRight;    // 水平右对齐
-            remarkText.VerticalMode = TextVerticalMode.TextTop;          // 垂直上对齐
-            Point3d args = new Point3d(width - textMargin, height - textMargin, 0);
-            remarkText.AlignmentPoint = new Point3d(width - textMargin, height - textMargin, 0);
-
-            // 设置颜色为洋红（索引6）
-            remarkText.Color = Color.FromColorIndex(ColorMethod.ByAci, 6);
+            // remarkText.HorizontalMode = TextHorizontalMode.TextRight;    // 水平右对齐
+            // remarkText.VerticalMode = TextVerticalMode.TextTop;          // 垂直上对齐
+            // Point3d args = new Point3d(width - textMargin, height - textMargin, 0);
+            // remarkText.AlignmentPoint = new Point3d(width - textMargin, height - textMargin, 0);
 
             // 添加实体
             entityList.Add(rectangle);

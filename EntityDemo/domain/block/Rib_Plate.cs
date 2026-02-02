@@ -51,11 +51,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             double textMargin
         )
         {
-            //// 参数校验 
-            // if(!upperDistance.Equals("-")) {
-            // upperDistanceInt = double.Parse(upperDistance);
-            // }
-
             // 定义块名
             blockName = $"Rib_Plate_{OD}_{H}_{material}_{ribPlateThick}_{cnt}_{buttomMagrin}_{upperDistance}";
 
