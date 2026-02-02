@@ -149,20 +149,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             // 行间距为文字高度1.6倍
             ODText.AlignmentPoint = new Point3d(HText.AlignmentPoint.X, HText.AlignmentPoint.Y + textHeight * 1.6, 0);
 
-            // 写入entitiess数组
-
-            // 原始图形
-
-            // 肋板图形
-            entityList.Add(sideLine);
-            entityList.Add(mirrored_sideLine);
-
-            entityList.Add(ribPlateButtomLine);
-            entityList.Add(countText);
-            entityList.Add(thickText);
-            entityList.Add(ODText);
-            entityList.Add(HText);
-
             // 绘制肋板圆弧
 
             // CircularArc3d通过三点计算圆弧的圆心,半径,起始终止弧度
@@ -176,6 +162,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             Arc ribPlate_arc = new Arc(cArc.Center, cArc.Radius, startAngel, endAngel);
             entityList.Add(ribPlate_arc);
+
+            // 加入entitiess数组
+            entityList.Add(sideLine);
+            entityList.Add(mirrored_sideLine);
+
+            entityList.Add(ribPlateButtomLine);
+            entityList.Add(countText);
+            entityList.Add(thickText);
+            entityList.Add(ODText);
+            entityList.Add(HText);
+
+            // 坐标平移 以mirrored_sideLine.startPoint作为原点
+            entityList.MoveEntity(mirrored_sideLine.StartPoint, Point3d.Origin);
         }
 
 

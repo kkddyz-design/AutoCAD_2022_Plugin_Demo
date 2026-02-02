@@ -2,6 +2,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -114,6 +115,51 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
             originEntity.TransformBy(translationMatrix);
 
             return new Entity[0];
+        }
+
+        ///
+        /// <summary>
+        /// 平移多个CAD实体,用于块对象平移
+        /// </summary>
+        /// <param name="entityList">需要平移的实体集合</param>
+        /// <param name="basePoint">平移基点</param>
+        /// <param name="targetPoint">平移目标点</param>
+        /// <returns>平移后的实体数组</returns>
+        /// <exception cref="ArgumentNullException">实体集合为null时抛出</exception>
+        /// <exception cref="ArgumentException">实体集合为空/平移向量为零时长时抛出</exception>
+        public static List<Entity> MoveEntity(this List<Entity> entityList, Point3d basePoint, Point3d targetPoint)
+        {
+            // 1. 输入参数有效性检查（修复原方法bug，新增集合空校验）
+            if(entityList == null) {
+                throw new ArgumentNullException(nameof(entityList), "待平移的实体集合不能为空。");
+            }
+            if(entityList.Count == 0) {
+                throw new ArgumentException("待平移的实体集合不能为空集合。", nameof(entityList));
+            }
+
+            // 2. 计算平移向量，判断是否为零长度（原逻辑保留）
+            Vector3d translationVector = targetPoint - basePoint;
+            if(translationVector.IsZeroLength()) {
+                string errorMessage = "平移向量为零，实体平移后将与原位置重叠，禁止操作。";
+                Debug.WriteLine(errorMessage);
+                throw new ArgumentException(errorMessage, nameof(translationVector));
+            }
+
+            // 3. 构建平移矩阵（只需构建一次，提升性能）
+            Matrix3d translationMatrix = Matrix3d.Displacement(translationVector);
+
+            // 4. 遍历集合，对每个实体执行平移变换
+            foreach(var entity in entityList) {
+                // 单独校验集合中的单个实体，避免个别实体为null导致崩溃
+                if(entity == null || entity.IsErased || entity.IsDisposed) {
+                    Debug.WriteLine("跳过空/已删除/已释放的CAD实体");
+                    continue;
+                }
+                entity.TransformBy(translationMatrix);
+            }
+
+            // 5. 保持返回值为Entity[]，将List直接转为数组返回
+            return entityList;
         }
 
         /*
