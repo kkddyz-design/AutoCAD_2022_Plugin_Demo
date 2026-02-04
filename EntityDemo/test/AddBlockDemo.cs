@@ -1,5 +1,6 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
+using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.ApplicationServices.Core;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
@@ -83,6 +84,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         public static void AddRibPlateByExcel()
         {
             db.AddRibPlateToModelSpaceByExcel();
+        }
+
+        [CommandMethod("OpenFileWithSheetSelect")]
+        public static void TestOpenExcel()
+        {
+            string filePath = FileTools.OpenFileWithSheetSelect();
         }
 
     }

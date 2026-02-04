@@ -1,6 +1,6 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block;
-using AutoCAD_2022_Plugin_Demo.files;
+using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
@@ -60,10 +60,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         public static void AddRectPlateToModelSpaceByExcel(this Database db)
         {
             // 选择文件
-            string filePath = FileTools.OpenFile();
+            // string filePath = FileTools.OpenFile();
+
+            string filePath = FileTools.OpenFileWithSheetSelect();
+
+            string[] paths = filePath.Split('|');
 
             // 读取文件数据
-            List<List<string>> excelData = FileTools.ReadExcelData(filePath, "汇总表");
+            List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
 
             // 创建对象数组
             List<Rect_Plate> rect_plates = new List<Rect_Plate>();
@@ -205,11 +209,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
 
         public static void AddRibPlateToModelSpaceByExcel(this Database db)
         {
-            // 选择文件
-            string filePath = FileTools.OpenFile();
+            // 选择数据表格
+            string filePath = FileTools.OpenFileWithSheetSelect();
+            string[] paths = filePath.Split('|');
 
             // 读取文件数据
-            List<List<string>> excelData = FileTools.ReadExcelData(filePath, "肋板汇总表");
+            List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
 
             // 创建对象数组
             List<Rib_Plate> rib_plates = new List<Rib_Plate>();

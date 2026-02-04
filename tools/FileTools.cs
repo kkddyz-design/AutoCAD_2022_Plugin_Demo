@@ -1,9 +1,10 @@
-﻿using AutoCAD_2022_Plugin_Demo.files;
+﻿using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using acad_AppService = Autodesk.AutoCAD.ApplicationServices;
@@ -13,7 +14,7 @@ using WinForms = System.Windows.Forms;
 [assembly: CommandClass(typeof(FileTools))]
 
 
-namespace AutoCAD_2022_Plugin_Demo.files
+namespace AutoCAD_2022_Plugin_Demo.tools
 {
 
     /// <summary>
@@ -26,9 +27,10 @@ namespace AutoCAD_2022_Plugin_Demo.files
 
 
         /// <summary>
-        /// 通过OpenFileDialog选择文件
+        /// 通过OpenFileDialog选择文件；该方法被OpenFileWithSheetSelect替代(需要手动设置选择的表格)
         /// </summary>
         /// <returns></returns>
+        [Obsolete]
         public static string OpenFile()
         {
             // 选择文件
@@ -51,6 +53,119 @@ namespace AutoCAD_2022_Plugin_Demo.files
                 return string.Empty;
             }
         }
+
+
+        /// <summary>
+        /// 通过OpenFileDialog选择文件，并对Excel文件指定读取的工作表
+        /// </summary>
+        /// <returns>Excel文件返回「文件路径|工作表名」，TXT文件返回「文件路径」，取消选择返回空字符串</returns>
+
+        public static string OpenFileWithSheetSelect()
+        {
+            WinForms.OpenFileDialog openFileDialog = new WinForms.OpenFileDialog()
+            {
+                Title = "打开文件",
+                Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
+                InitialDirectory = "E:\\desktop\\",
+                CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
+                RestoreDirectory = true // 关闭对话框后恢复原目录
+            };
+
+            // 显示文件选择对话框
+            WinForms.DialogResult dialogResult = openFileDialog.ShowDialog();
+            if(dialogResult != WinForms.DialogResult.OK) {
+                return string.Empty;
+            }
+
+            string filePath = openFileDialog.FileName;
+
+            // 判断文件类型：如果是TXT，直接返回路径；如果是XLSX，解析工作表并让用户选择
+            if(filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)) {
+                return filePath;
+            }
+            else if(filePath.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase)) {
+                try {
+                    // 设置EPPlus许可证（4.5.3.3及以下版本需加，高版本需单独处理）
+                    ExcelPackage.License.SetNonCommercialPersonal("kkddyz");
+
+                    // 读取Excel文件，获取所有工作表名称
+                    List<string> sheetNames = new List<string>();
+                    using(ExcelPackage package = new ExcelPackage(new FileInfo(filePath))) {
+                        foreach(ExcelWorksheet worksheet in package.Workbook.Worksheets) {
+                            sheetNames.Add(worksheet.Name); // 遍历所有工作表，存入集合
+                        }
+                    }
+
+                    // 校验是否有工作表（避免空Excel文件）
+                    if(sheetNames.Count == 0) {
+                        WinForms.MessageBox.Show("该Excel文件中无任何工作表！", "提示",
+                            WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Warning);
+                        return string.Empty;
+                    }
+
+                    // 只有1个工作表，直接使用，无需弹窗选择
+                    else if(sheetNames.Count == 1) {
+                        return $"{filePath}|{sheetNames[0]}";
+                    }
+
+                    // 多个工作表，弹出选择框让用户指定
+                    else {
+                        // 用ListBox做简易工作表选择窗口（也可自定义WinForm窗体）
+                        using(WinForms.Form sheetSelectForm = new WinForms.Form()) {
+                            sheetSelectForm.Text = "选择工作表";
+                            sheetSelectForm.Size = new Size(300, 400);
+                            sheetSelectForm.StartPosition = WinForms.FormStartPosition.CenterParent; // 居中显示
+
+                            WinForms.ListBox listBox = new WinForms.ListBox()
+                            {
+                                Dock = WinForms.DockStyle.Fill,
+                                Font = new System.Drawing.Font("微软雅黑", 10),
+                                SelectionMode = WinForms.SelectionMode.One // 只能单选
+                            };
+                            listBox.Items.AddRange(sheetNames.ToArray()); // 绑定工作表名称
+                            listBox.SelectedIndex = 0; // 默认选中第一个工作表
+
+                            WinForms.Button confirmBtn = new WinForms.Button()
+                            {
+                                Text = "确认选择",
+                                Dock = WinForms.DockStyle.Bottom,
+                                Height = 40,
+                                Font = new System.Drawing.Font("微软雅黑", 10)
+                            };
+                            confirmBtn.Click += (s, e) =>
+                                {
+                                    sheetSelectForm.DialogResult = WinForms.DialogResult.OK;
+                                };
+
+                            // 将控件添加到窗体
+                            sheetSelectForm.Controls.Add(listBox);
+                            sheetSelectForm.Controls.Add(confirmBtn);
+                            sheetSelectForm.AcceptButton = confirmBtn; // 按回车触发确认
+
+                            // 显示工作表选择窗体
+                            if(sheetSelectForm.ShowDialog() == WinForms.DialogResult.OK) {
+                                string selectedSheet = listBox.SelectedItem.ToString();
+                                return $"{filePath}|{selectedSheet}";
+                            }
+                            else {
+                                return string.Empty; // 用户取消选择工作表
+                            }
+                        }
+                    }
+                }
+                catch(System.Exception ex) {
+                    WinForms.MessageBox.Show($"读取Excel工作表失败：{ex.Message}", "错误",
+                        WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
+                    return string.Empty;
+                }
+            }
+            else {
+                WinForms.MessageBox.Show("仅支持.xlsx和.txt文件！", "提示",
+                    WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Warning);
+                return string.Empty;
+            }
+        }
+
 
         /// <summary>
         /// 按行读取txt中的数据
