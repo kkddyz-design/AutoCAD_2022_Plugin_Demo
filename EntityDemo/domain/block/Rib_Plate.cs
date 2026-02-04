@@ -20,8 +20,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public double Rib_Plate_OD { get; set; }
 
-        public Point3d Rib_Plate_Position { get; set; }
-
 
         /// <summary>
         /// 创建Rib_Plate(肋板)的块定义
@@ -52,7 +50,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         )
         {
             // 定义块名
-            blockName = $"Rib_Plate_{OD}_{H}_{material}_{ribPlateThick}_{cnt}_{buttomMagrin}_{upperDistance}";
+            BlockName = $"Rib_Plate_{OD}_{H}_{material}_{ribPlateThick}_{cnt}_{buttomMagrin}_{upperDistance}";
 
             // 创建OD圆
             Circle od_circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), OD / 2);
@@ -104,9 +102,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             Rib_Plate_L = rectL;
             Rib_Plate_H = H;
             Rib_Plate_OD = OD;
-            Rib_Plate_Position = mirrored_sideLine.StartPoint;
+            BlockPosition = mirrored_sideLine.StartPoint;
 
-            // 创建文本-count 居中对齐
+            // 创建文本-BlockCount 居中对齐
 
             DBText countText = new DBText();
             countText.TextString = $"+={cnt}";
@@ -114,16 +112,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             countText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
             countText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             countText.Height = textHeight / 2;
-            countText.AlignmentPoint = new Point3d(h_line_end.X, Rib_Plate_Position.Y + Rib_Plate_H / 2, 0);
+            countText.AlignmentPoint = new Point3d(h_line_end.X, BlockPosition.Y + Rib_Plate_H / 2, 0);
 
-            // 创建文本-thick
+            // 创建文本-BlockThick
             DBText thickText = new DBText();
             thickText.TextString = $"*={ribPlateThick}";
 
             thickText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
             thickText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             thickText.Height = textHeight / 2;
-            thickText.AlignmentPoint = new Point3d(h_line_end.X, Rib_Plate_Position.Y + Rib_Plate_H / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
+            thickText.AlignmentPoint = new Point3d(h_line_end.X, BlockPosition.Y + Rib_Plate_H / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
 
             // 创建文本-H
             DBText HText = new DBText();

@@ -11,6 +11,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
     public class Rect_Plate : AbstractBlock
     {
 
+        public double Rect_Plate_H { get; set; }
+
+        public double Rect_Plate_L { get; set; }
+
+        public string Rect_Plate_Material { get; set; }
+
         /// <summary>
         /// 矩形下料
         /// </summary>
@@ -19,64 +25,71 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         /// <param name="thick">矩形厚度</param>
         /// <param name="count">数量</param>
         /// <param name="material">材质</param>
-        public Rect_Plate(double width, double height, int thick, int count, string material)
+        public Rect_Plate(double rectH, double rectL, int thick, int count, string material)
         {
             double textHeight = 15;
             double textMargin = 10;
 
             // 当height<100,按比例缩放字体大小
-            FormatTools.ScaleTextHeightAndMargin(height, width, ref textHeight, ref textMargin);
+            FormatTools.ScaleTextHeightAndMargin(rectH, rectL, ref textHeight, ref textMargin);
 
-            // 确保width >= height
-            if(width < height) {
-                exchange(ref width, ref height);
+            // 确保width >= rectH
+            if(rectL < rectH) {
+                exchange(ref rectL, ref rectH);
             }
 
-            blockName = $"Rectplate_{height}_{width}_{thick}_{count}_{material}";
+            // 封装数据
+            BlockName = $"Rectplate_{rectH}_{rectL}_{thick}_{count}_{material}";
+            Rect_Plate_H = rectH;
+            Rect_Plate_L = rectL;
+            BlockThick = thick;
+            BlockCount = count;
+            Rect_Plate_Material = material;
 
             // 创建矩形 
-            Rectangle rectangle = new Rectangle(Point3d.Origin, width, height);
+            Rectangle rectangle = new Rectangle(Point3d.Origin, rectL, rectH);
 
-            // 创建文本"高-宽" 左对齐 
+            // 创建文本"高-宽" 居中对齐 
             DBText height_width = new DBText();
-            height_width.TextString = $"{height}-{width}";
-            height_width.Position = new Point3d(textMargin, textMargin, 0);
-            height_width.Height = textHeight;
 
-            // 创建文本-count 居中对齐
+            height_width.HorizontalMode = TextHorizontalMode.TextMid;     // 居中对齐
+            height_width.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
+            height_width.TextString = $"{rectH}-{rectL}";
+            height_width.Height = textHeight;
+            height_width.AlignmentPoint = new Point3d(rectL / 2, textMargin * 2, 0);
+
+            // 创建文本-BlockCount 居中对齐
             DBText countText = new DBText();
             countText.TextString = $"+={count}";
 
-            countText.HorizontalMode = TextHorizontalMode.TextLeft;     // 水平左对齐
+            countText.HorizontalMode = TextHorizontalMode.TextMid;     // 居中对齐
             countText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             countText.Height = textHeight / 2;
-            countText.AlignmentPoint = new Point3d(textMargin * 2, height / 2, 0);
+            countText.AlignmentPoint = new Point3d(rectL / 2, rectH / 2, 0);
 
-            // 创建文本-thick
+            // 创建文本-BlockThick
             DBText thickText = new DBText();
             thickText.TextString = $"*={thick}";
 
-            thickText.HorizontalMode = TextHorizontalMode.TextLeft;     // 水平左对齐
+            thickText.HorizontalMode = TextHorizontalMode.TextMid;     // 居中对齐
             thickText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             thickText.Height = textHeight / 2;
-            thickText.AlignmentPoint = new Point3d(textMargin * 2, height / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
-
-            // 创建文本 remark 
-            // DBText remarkText = new DBText();
-            // remarkText.TextString = remarkStr;
-            // remarkText.Height = textHeight;
-
-            // remarkText.HorizontalMode = TextHorizontalMode.TextRight;    // 水平右对齐
-            // remarkText.VerticalMode = TextVerticalMode.TextTop;          // 垂直上对齐
-            // Point3d args = new Point3d(width - textMargin, height - textMargin, 0);
-            // remarkText.AlignmentPoint = new Point3d(width - textMargin, height - textMargin, 0);
+            thickText.AlignmentPoint = new Point3d(rectL / 2, rectH / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
 
             // 添加实体
             entityList.Add(rectangle);
             entityList.Add(height_width);
             entityList.Add(thickText);
             entityList.Add(countText);
-            entityList.Add(remarkText);
+
+            // 设置特殊材质颜色
+            // 特殊材质-设置颜色
+            if(!material.Equals("碳钢")) {
+                entityList.SetEntityListColor(6);
+            }
+
+            // 插入点以左上角，但是定义的Rect对象是以左下角为基点创建对象的
+            entityList.MoveEntity(new Point3d(0, rectH, 0), Point3d.Origin);
         }
 
         private static void exchange(ref double a, ref double b)

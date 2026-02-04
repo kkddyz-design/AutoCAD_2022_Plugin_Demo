@@ -210,7 +210,7 @@ namespace AutoCAD_2022_Plugin_Demo.interactionDemo
                                         return;
                                     }
                                 }
-                                else // count > 0 移除线
+                                else // BlockCount > 0 移除线
                                 {
                                     // RemoveLastLine在内存和数据中同时删除
                                     Line lastLine = RemoveLastLine(db, lineList);

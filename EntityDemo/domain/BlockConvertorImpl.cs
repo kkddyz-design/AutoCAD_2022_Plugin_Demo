@@ -48,10 +48,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
                     Rect_Plate rectPlate = new Rect_Plate(height, width, thick, count, remarkStr);
 
                     // 查询块定义是否存在
-                    ObjectId rectPlateId = db.GetBlockIdByName(rectPlate.blockName);
+                    ObjectId rectPlateId = db.GetBlockIdByName(rectPlate.BlockName);
                     if(rectPlateId == ObjectId.Null) {
                         // 写入块定义
-                        rectPlateId = db.AddBlockTableRecord(rectPlate.blockName, rectPlate.entityList);
+                        rectPlateId = db.AddBlockTableRecord(rectPlate.BlockName, rectPlate.entityList);
                     }
 
                     // 计算position 需要一个起点 // 换行计数 20 

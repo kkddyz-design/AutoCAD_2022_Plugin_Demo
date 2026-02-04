@@ -20,7 +20,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         static Database db = HostApplicationServices.WorkingDatabase;
         static Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
 
-        [CommandMethod("GetBlockTableRecord")]
+        /// <summary>
+        /// 测试方法
+        /// </summary>
+        [CommandMethod("TestGetBlockTableRecord")]
         public static void GetBlockTableRecord()
         {
             using(Transaction trans = db.TransactionManager.StartTransaction()) {
@@ -36,7 +39,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             }
         }
 
-        [CommandMethod("AddBlockTableRecord")]
+        /// <summary>
+        /// 测试方法
+        /// </summary>
+        [CommandMethod("TestAddBlockTableRecord")]
         public static void AddBlockTableRecord()
         {
             string btrName = "一堆圆";
@@ -55,8 +61,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             db.AddBlockTableRecord(btrName, new List<Entity> { circle1, circle2, circle3, circle4, circle5 });
         }
 
-
-        [CommandMethod("AddBlockRef")]
+        /// <summary>
+        /// 测试方法
+        /// </summary>
+        [CommandMethod("TestAddBlockRef")]
         public static void AddBlockRef()
         {
             Point3d basePoint = new Point3d(100, 100, 0);

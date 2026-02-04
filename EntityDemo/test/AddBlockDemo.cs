@@ -73,10 +73,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         }
 
 
-        [CommandMethod("AddRectPlateDemo2")]
+        [CommandMethod("AddRectPlate")]
         public static void AddRectPlateDemo2()
         {
-            db.AddRectPlateToModelSpaceByTxt();
+            db.AddRectPlateToModelSpaceByExcel();
         }
 
         [CommandMethod("AddLeiBan")]

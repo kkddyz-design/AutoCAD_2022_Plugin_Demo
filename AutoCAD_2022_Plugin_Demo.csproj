@@ -128,7 +128,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EntityDemo\BlockTools.cs" />
+    <Compile Include="tools\BlockTools.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\domain\BlockConvertorImpl.cs" />
     <Compile Include="EntityDemo\domain\block\AbstractBlock.cs" />
@@ -140,15 +140,15 @@
     <Compile Include="EntityDemo\domain\FormatTools.cs" />
     <Compile Include="EntityDemo\service\AddBlockService.cs" />
     <Compile Include="EntityDemo\service\AddEntityService.cs" />
-    <Compile Include="EntityDemo\DBTools.cs" />
+    <Compile Include="tools\DBTools.cs" />
     <Compile Include="EntityDemo\domain\EntityModifier.cs" />
     <Compile Include="EntityDemo\test\AddBlockDemo.cs" />
     <Compile Include="EntityDemo\test\ModifyEntityDemo.cs" />
     <Compile Include="EntityDemo\service\ModifyEntityService.cs" />
     <Compile Include="EntityDemo\domain\GeometryTools.cs" />
     <Compile Include="EntityDemo\test\AddEntityDemo.cs" />
-    <Compile Include="EntityDemo\HatchTools.cs" />
-    <Compile Include="files\FileTools.cs" />
+    <Compile Include="tools\HatchTools.cs" />
+    <Compile Include="tools\FileTools.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="interactionDemo\CircleJig.cs" />
     <Compile Include="interactionDemo\PromptTools.cs" />
