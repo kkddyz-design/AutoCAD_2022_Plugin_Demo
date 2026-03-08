@@ -5,9 +5,11 @@ using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
+namespace AutoCAD_2022_Plugin_Demo.tools
 {
 
     public static class GeometryTools
@@ -79,6 +81,39 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
 
             return angleInDegrees;
         }
+
+        /// <summary>
+        /// 计算从起点到终点的向量与X轴正方向的夹角（返回弧度值，范围 [0, 2π]）
+        /// </summary>
+        /// <param name="startPoint">起始点</param>
+        /// <param name="endPoint">终点</param>
+        /// <returns>夹角（弧度），零向量返回0.0</returns>
+        public static double GetRadiansToXAxis(this Point3d startPoint, Point3d endPoint)
+        {
+            // 1. 声明与X轴正方向平行的向量
+            Vector3d xAxis = new Vector3d(1, 0, 0);
+
+            // 2. 获取从起点到终点的方向向量
+            Vector3d direction = startPoint.GetVectorTo(endPoint);
+
+            // 3. 处理零向量（起点=终点）的特殊情况
+            if(direction.IsZeroLength()) {
+                return 0.0;
+            }
+
+            // 4. 计算与X轴正方向的夹角（弧度），原生返回范围 [0, π]
+            double angleInRadians = xAxis.GetAngleTo(direction);
+
+            // 5. 判断方向向量是否在X轴下方（Y<0，第三/四象限）
+            // 若在下方，将角度修正为 [π, 2π] 范围（保持总范围 [0, 2π]）
+            if(direction.Y < 0) {
+                angleInRadians = 2 * Math.PI - angleInRadians;
+            }
+
+            // 直接返回弧度值
+            return angleInRadians;
+        }
+
         /*
          * 获取两点的中心点
          */
@@ -292,6 +327,142 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
         public static Point2d ToPoint2d(this Point3d point)
         {
             return new Point2d(point.X, point.Y);
+        }
+
+
+        /// <summary>
+        /// 使用弃用的IntersectWith多参数重载计算射线与圆的交点（多个交点取Y最小）;  注意计算时，会将射线反向无限延长
+        /// </summary>
+        /// <param name="ray">无限射线对象</param>
+        /// <param name="circle">圆对象</param>
+        /// <returns>符合要求的交点</returns>
+        /// <exception cref="ArgumentNullException">参数为空时抛出</exception>
+        /// <exception cref="Exception">无交点时抛出</exception>
+        public static Point3d GetIntersectionBetween_Ray_Circle(Ray ray, Circle circle)
+        {
+            // 1. 参数校验
+            if(ray == null) {
+                throw new ArgumentNullException(nameof(ray), "射线对象不能为空！");
+            }
+
+            if(circle == null) {
+                throw new ArgumentNullException(nameof(circle), "圆对象不能为空！");
+            }
+
+            // 2. 初始化交点集合
+            Point3dCollection intersectPoints = new Point3dCollection();
+
+            // 3. 调用IntersectWith多参数重载（核心）
+            // 参数说明：
+            // 参数1：待求交的对象（圆）
+            // 参数2：求交延伸模式（ExtendBoth=延伸两者至相交）
+            // 参数3：输出交点集合
+            // 参数4：交点排序方式（0=无排序）
+            // 参数5：求交公差（0=精确求交）
+            ray.IntersectWith(
+            circle,
+            Intersect.ExtendBoth,
+            intersectPoints,
+            0,
+            0
+            );
+
+            // 4. 处理交点结果
+            if(intersectPoints.Count == 0) {
+                throw new Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
+            }
+            else if(intersectPoints.Count == 1) {
+                // 只有1个交点（相切），直接返回
+                return intersectPoints[0];
+            }
+            else {
+                // 多个交点：转换为可枚举集合，按Y坐标升序排序，取第一个（Y最小）
+                return intersectPoints.Cast<Point3d>().OrderBy(p => p.Y).First();
+            }
+        }
+
+
+        /// <summary>
+        /// 求射线与圆的交点，并支持自定义排序策略
+        /// </summary>
+        /// <param name="ray">射线对象</param>
+        /// <param name="circle">圆对象</param>
+        /// <param name="comparer">排序比较器（可选，默认按Y坐标升序）</param>
+        /// <returns>排序后的交点数组</returns>
+        /// <exception cref="ArgumentNullException">射线/圆为空时抛出</exception>
+        /// <exception cref="Exception">无交点时抛出</exception>
+        public static Point3d[] GetIntersectionsBetween_Ray_Circle(
+            Ray ray,
+            Circle circle,
+            IComparer<Point3d>? comparer = null // 排序策略接口（可选参数）
+        )
+        {
+            // 1. 参数校验
+            if(ray == null) {
+                throw new ArgumentNullException(nameof(ray), "射线对象不能为空！");
+            }
+
+            if(circle == null) {
+                throw new ArgumentNullException(nameof(circle), "圆对象不能为空！");
+            }
+
+            // 2. 初始化交点集合
+            Point3dCollection intersectPoints = new Point3dCollection();
+
+            // 3. 调用求交方法
+            ray.IntersectWith(
+                circle,
+                Intersect.ExtendBoth,
+                intersectPoints,
+                0,
+                0
+            );
+
+            // 4. 处理无交点情况
+            if(intersectPoints.Count == 0) {
+                throw new Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
+            }
+
+            // 5. 转换为可枚举集合
+            var points = intersectPoints.Cast<Point3d>();
+
+            // 6. 应用排序策略（默认按Y升序，否则用传入的比较器）
+            var sortedPoints = comparer == null
+                ? points.OrderBy(p => p.Y) // 默认策略：按Y坐标升序
+                : points.OrderBy(p => p, comparer); // 自定义排序策略
+
+            // 7. 转换为数组并返回
+            return sortedPoints.ToArray();
+        }
+
+        // ===================== 可选：预设常用的排序比较器（方便调用） =====================
+        /// <summary>
+        /// 按X坐标升序的比较器
+        /// </summary>
+        public static readonly IComparer<Point3d> OrderByX = Comparer<Point3d>.Create((a, b) => a.X.CompareTo(b.X));
+
+
+        /// <summary>
+        /// 按X坐标降序的比较器
+        /// </summary>
+        public static readonly IComparer<Point3d> OrderByXDesc = Comparer<Point3d>.Create((a, b) => b.X.CompareTo(a.X));
+
+        /// <summary>
+        /// 按Y坐标降序的比较器
+        /// </summary>
+        public static readonly IComparer<Point3d> OrderByYDesc = Comparer<Point3d>.Create((a, b) => b.Y.CompareTo(a.Y));
+
+        /// <summary>
+        /// 按到射线基点的距离升序的比较器
+        /// </summary>
+        public static IComparer<Point3d> OrderByDistanceToRayBase(Ray ray)
+        {
+            return Comparer<Point3d>.Create((a, b) =>
+                {
+                    double distA = a.DistanceTo(ray.BasePoint);
+                    double distB = b.DistanceTo(ray.BasePoint);
+                    return distA.CompareTo(distB);
+                });
         }
 
     }

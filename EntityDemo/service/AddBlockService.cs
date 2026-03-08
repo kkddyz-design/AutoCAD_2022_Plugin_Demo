@@ -299,6 +299,23 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             }
         }
 
+
+        /// <summary>
+        /// 这个函数用于绘制保冷管夹,给定参数：内径 管夹厚度 开档 R角 数量 耳朵长 孔径 孔边距
+        /// </summary>
+        /// <param name="db"></param>
+        public static void AddBaoLenToModelSpaceByExcel(this Database db)
+        {
+            // 选择数据表格
+            string filePath = FileTools.OpenFileWithSheetSelect();
+            string[] paths = filePath.Split('|');
+
+            // 读取文件数据
+            List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
+
+            // 创建管夹对象
+        }
+
     }
 
 }

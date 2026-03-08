@@ -2,11 +2,14 @@
  * 学习图形绘制 即Entity对象的操作
  */
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
+using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System;
@@ -333,6 +336,114 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddEntityToModelSpace(rect);
 
             db.MoveEntityToModelSpace(rect.Id, rect.GetPosition(), targetPoint);
+        }
+
+        [CommandMethod("Demo11")]
+        public static void Demo11()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+            Database db = doc.Database;
+
+            Circle ID_circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), 100);
+            Circle OD_circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), 150);
+
+            Line line1 = new Line(Point3d.Origin, new Point3d(200, 0, 0));
+            Line line2 = (Line)line1.CopyEntity(line1.StartPoint, new Point3d(0, 50, 0))[0];
+
+            Line line3 = (Line)line1.MirrorEntity(Point3d.Origin, new Point3d(0, 50, 0))[0];
+            Line line4 = (Line)line2.MirrorEntity(Point3d.Origin, new Point3d(0, 50, 0))[0];
+
+            ObjectId id1 = db.AddEntityToModelSpace(ID_circle);
+            db.AddEntityToModelSpace(OD_circle);
+            db.AddEntityToModelSpace(line1);
+
+            ObjectId id2 = db.AddEntityToModelSpace(line2);
+            db.AddEntityToModelSpace(line3);
+            db.AddEntityToModelSpace(line4);
+
+            double filletRadius = 10;
+
+            try {
+                // ========== 核心：名词-动词选择模式 ==========
+
+                // 临时存储原始PICKFIRST值，用于后续恢复
+                object oldPickFirst = null;
+
+                // 1. 保存并开启PICKFIRST（先选择后执行）
+                oldPickFirst = Application.GetSystemVariable("PICKFIRST");
+                Application.SetSystemVariable("PICKFIRST", 1);
+
+                // 2. 创建包含两个对象的选择集
+
+                ObjectId[] targetIds = new ObjectId[] { id1, id2 };
+
+                // SelectionSet selSet = SelectionSet.Create(targetIds);
+                SelectionSet selSet = SelectionSet.FromObjectIds(targetIds);
+
+                // 3. 设置为“隐含选择”（模拟用户手动选中对象）
+                ed.SetImpliedSelection(selSet);
+
+                //// 4. 调用FILLET命令（依赖隐含选择，无需手动选对象）
+                ed.Command(
+                "_.FILLET",       // 圆角命令
+                "_R",             // 选择半径选项
+                filletRadius,     // 设置圆角半径
+                string.Empty,     // 确认半径（Enter）
+                string.Empty,     // 选择第一个对象（隐含选择，直接Enter）
+                string.Empty      // 选择第二个对象（隐含选择，直接Enter）
+                );
+
+                // 5. 强制刷新视图（确保图形立即显示变化）
+                ed.Regen();
+
+                // ========== 清理操作 ==========
+                // 清除隐含选择，避免影响后续命令
+                SelectionSet emptySelSet = SelectionSet.FromObjectIds(new ObjectId[0]);
+                ed.SetImpliedSelection(emptySelSet);
+
+                ed.WriteMessage($"\n圆角操作完成！\n半径：{filletRadius}\n对象1 ID：{id1}\n对象2 ID：{id2}");
+            }
+            catch(System.Exception ex) {
+                ed.WriteMessage($"\n圆角操作失败：{ex.Message}");
+            }
+
+            // 通过Editor调用trim快速修剪
+            // Point3d startP = new Point3d(-200, 30, 0);
+            // Point3d endP = new Point3d(200, 29, 0);
+            // using(Transaction tr = db.TransactionManager.StartTransaction()) {
+            // // TR 命令 → 空格（快速模式）→ F（栏选）→ 起点 → 终点 → 空格
+
+            // doc.Editor.Command(
+            // "_.TRIM",       // 修剪命令
+            // string.Empty,   // 空格 = 直接进入快速模式（所有对象当边界）
+            // "_F",           // 栏选 Fence
+            // startP,         // 你指定的栏选起点
+            // endP,           // 你指定的栏选终点
+            // string.Empty,
+            // string.Empty);  // 结束命令
+            // tr.Commit();
+            // doc.Editor.WriteMessage("\n快速栏选修剪完成！");
+            // }
+        }
+
+        [CommandMethod("TestClamp")]
+        public static void TestClamp()
+        {
+            TowHolePipeClamp towHolePipeClamp = new TowHolePipeClamp(156, 6, 4, 10, 25, "碳钢", 35, 50, 14);
+
+            ObjectId RightInnerArcId = db.AddEntityToModelSpace(towHolePipeClamp.RightInnerArc);
+            ObjectId RightOutterArc = db.AddEntityToModelSpace(towHolePipeClamp.RightOutterArc);
+            ObjectId InnerLineId = db.AddEntityToModelSpace(towHolePipeClamp.InnerLine);
+            ObjectId OutterLineId = db.AddEntityToModelSpace(towHolePipeClamp.OutterLine);
+
+            AutoCadTools.ExecuteFilletByObjectId(RightInnerArcId, InnerLineId, 10);
+            AutoCadTools.ExecuteFilletByObjectId(RightOutterArc, OutterLineId, 10);
+
+            // db.AddEntityToModelSpace(towHolePipeClamp.OutterCircle);
+            // db.AddEntityToModelSpace(towHolePipeClamp.InnerCircle);
+            // db.AddEntityToModelSpace(towHolePipeClamp.SpanRay);
+            // db.AddEntityToModelSpace(towHolePipeClamp.ThickRay);
         }
 
     }

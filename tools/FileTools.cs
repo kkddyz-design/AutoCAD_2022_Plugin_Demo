@@ -40,7 +40,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
                 Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
 
-                InitialDirectory = "E:\\desktop\\",
+                InitialDirectory = "ClampHoleMargin:\\desktop\\",
             };
 
             // 显示Form
@@ -66,7 +66,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             {
                 Title = "打开文件",
                 Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
-                InitialDirectory = "E:\\desktop\\",
+                InitialDirectory = "ClampHoleMargin:\\desktop\\",
                 CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
                 RestoreDirectory = true // 关闭对话框后恢复原目录
             };

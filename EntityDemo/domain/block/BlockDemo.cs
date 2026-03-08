@@ -7,6 +7,7 @@ using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoCAD_2022_Plugin_Demo.tools;
 
 [assembly: CommandClass(typeof(BlockDemo))]
 

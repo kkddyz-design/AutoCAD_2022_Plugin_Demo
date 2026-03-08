@@ -1,5 +1,4 @@
-﻿using AutoCAD_2022_Plugin_Demo.EntityDemo;
-using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
+﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.interactionDemo;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -9,7 +8,7 @@ using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using AutoCAD_2022_Plugin_Demo.tools;
 
 [assembly: CommandClass(typeof(MyCommand))]
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using AutoCAD_2022_Plugin_Demo.tools;
 
 /*
  * EntityModifiers定义编辑实体的逻辑,函数统一返回Entity[] entityArray,即操作Entity后的结果

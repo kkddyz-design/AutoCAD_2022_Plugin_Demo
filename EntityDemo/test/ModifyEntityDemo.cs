@@ -2,6 +2,7 @@
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
+using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;

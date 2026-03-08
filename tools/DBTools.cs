@@ -11,7 +11,7 @@ using System.Linq;
  * addEntity需要重构
  */
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo
+namespace AutoCAD_2022_Plugin_Demo.tools
 {
 
     public static class DBTools

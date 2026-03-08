@@ -1,4 +1,5 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
+using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
@@ -87,7 +88,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             sideRay.UnitDir = new Vector3d(0, 1, 0).GetNormal(); // 垂直向上方向
 
             // 计算交点作为sideLineEnd
-            Point3d sideLineEnd = GetIntersectionBetween_Ray_Circle(sideRay, offset_circle);
+            Point3d sideLineEnd = GeometryTools.GetIntersectionBetween_Ray_Circle(sideRay, offset_circle);
 
             // 创建左侧肋板边线
             Line sideLine = new Line(sideLineStart, sideLineEnd);
@@ -172,58 +173,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             // 特殊材质-设置颜色
             if(!material.Equals("碳钢")) {
                 entityList.SetEntityListColor(6);
-            }
-        }
-
-
-        /// <summary>
-        /// 使用弃用的IntersectWith多参数重载计算射线与圆的交点（多个交点取Y最小）
-        /// </summary>
-        /// <param name="ray">无限射线对象</param>
-        /// <param name="circle">圆对象</param>
-        /// <returns>符合要求的交点</returns>
-        /// <exception cref="ArgumentNullException">参数为空时抛出</exception>
-        /// <exception cref="Exception">无交点时抛出</exception>
-        public static Point3d GetIntersectionBetween_Ray_Circle(Ray ray, Circle circle)
-        {
-            // 1. 参数校验
-            if(ray == null) {
-                throw new ArgumentNullException(nameof(ray), "射线对象不能为空！");
-            }
-
-            if(circle == null) {
-                throw new ArgumentNullException(nameof(circle), "圆对象不能为空！");
-            }
-
-            // 2. 初始化交点集合
-            Point3dCollection intersectPoints = new Point3dCollection();
-
-            // 3. 调用IntersectWith多参数重载（核心）
-            // 参数说明：
-            // 参数1：待求交的对象（圆）
-            // 参数2：求交延伸模式（ExtendBoth=延伸两者至相交）
-            // 参数3：输出交点集合
-            // 参数4：交点排序方式（0=无排序）
-            // 参数5：求交公差（0=精确求交）
-            ray.IntersectWith(
-                circle,
-                Intersect.ExtendBoth,
-                intersectPoints,
-                0,
-                0
-            );
-
-            // 4. 处理交点结果
-            if(intersectPoints.Count == 0) {
-                throw new Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
-            }
-            else if(intersectPoints.Count == 1) {
-                // 只有1个交点（相切），直接返回
-                return intersectPoints[0];
-            }
-            else {
-                // 多个交点：转换为可枚举集合，按Y坐标升序排序，取第一个（Y最小）
-                return intersectPoints.Cast<Point3d>().OrderBy(p => p.Y).First();
             }
         }
 

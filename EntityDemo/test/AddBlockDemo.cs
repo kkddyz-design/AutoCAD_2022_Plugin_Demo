@@ -30,7 +30,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             ////Database db = doc.Database;
             // Editor editor = doc.Editor;
 
-            string filePath = "E:\\desktop\\";
+            string filePath = "ClampHoleMargin:\\desktop\\";
             string fileName = "test";
 
             // 使用system.windows.form中的对话框
@@ -84,6 +84,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         public static void AddRibPlateByExcel()
         {
             db.AddRibPlateToModelSpaceByExcel();
+        }
+
+        [CommandMethod("AddBaoLen")]
+        public static void AddBaoLenByExcel()
+        {
         }
 
         [CommandMethod("OpenFileWithSheetSelect")]

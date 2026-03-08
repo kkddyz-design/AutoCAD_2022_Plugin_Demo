@@ -129,6 +129,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntityDemo\domain\block\TowHolePipeClamp.cs" />
+    <Compile Include="tools\AutoCadTools.cs" />
     <Compile Include="tools\BlockTools.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\domain\BlockConvertorImpl.cs" />
@@ -146,7 +148,7 @@
     <Compile Include="EntityDemo\test\AddBlockDemo.cs" />
     <Compile Include="EntityDemo\test\ModifyEntityDemo.cs" />
     <Compile Include="EntityDemo\service\ModifyEntityService.cs" />
-    <Compile Include="EntityDemo\domain\GeometryTools.cs" />
+    <Compile Include="tools\GeometryTools.cs" />
     <Compile Include="EntityDemo\test\AddEntityDemo.cs" />
     <Compile Include="tools\HatchTools.cs" />
     <Compile Include="tools\FileTools.cs" />
