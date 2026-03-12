@@ -62,21 +62,36 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         // 上面是属性，下面是管夹对应的图元对象
 
 
-        public Arc RightInnerArc { get; set; }
+        public Arc InnerRefArc { get; set; }
 
-        public Arc RightOutterArc { get; set; }
+        public Arc OuterRefArc { get; set; }
 
-        public Circle InnerCircle { get; set; }
+        public Circle InnerRefCircle { get; set; }
 
-        public Circle OutterCircle { get; set; }
+        public Circle OuterRefCircle { get; set; }
 
         public Ray SpanRay { get; set; }
 
         public Ray ThickRay { get; set; }
 
-        public Line InnerLine { get; set; }
+        public Line InnerRefLine { get; set; }
 
-        public Line OutterLine { get; set; }
+        public Line OuterRefLine { get; set; }
+
+        public Arc OuterFilletArc { get; set; }
+
+        public Arc InnerFilletArc { get; set; }
+
+        public Line OutEar { get; set; }
+
+        public Line InnerEar { get; set; }
+
+        public Arc InnerArc { get; set; }
+
+        public Arc OuterArc { get; set; }
+
+
+        public Line EdgeLine { get; set; }
 
         public TowHolePipeClamp(
             double innerDiameter,
@@ -133,28 +148,78 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             // 6. 创建圆弧对象 -- 创建一侧的圆弧，最终通过镜像生成整个管夹
 
-            double innerArcStartRedian = GeometryTools.GetRadiansToXAxis(Point3d.Origin, SpanRayInterPoint);
-            Arc innerArc = new Arc(Point3d.Origin, ClampInnerDiameter / 2, innerArcStartRedian, Math.PI / 2);
-            innerArc.ChangeColor(6);
+            double innerRefArcStartRedian = Point3d.Origin.GetRadiansToXAxis(SpanRayInterPoint);
+            Arc innerRefArc = new Arc(Point3d.Origin, ClampInnerDiameter / 2, innerRefArcStartRedian, Math.PI / 2);
 
-            double outterArcStartRedian = GeometryTools.GetRadiansToXAxis(Point3d.Origin, ThickRayInterPoint);
-            Arc outterArc = new Arc(Point3d.Origin, ClampInnerDiameter / 2 + BlockThick, outterArcStartRedian, Math.PI / 2);
+            double outerRefArcStartRedian = GeometryTools.GetRadiansToXAxis(Point3d.Origin, ThickRayInterPoint);
+            Arc outerRefArc = new Arc(Point3d.Origin, ClampInnerDiameter / 2 + BlockThick, outerRefArcStartRedian, Math.PI / 2);
 
             // 7. 创建直线 
-            Line innerEarLine = new Line(SpanRayInterPoint, new Point3d(SpanRayInterPoint.X + 100, SpanRayInterPoint.Y, SpanRayInterPoint.Z));
-            Line outterEarLine = new Line(ThickRayInterPoint, new Point3d(ThickRayInterPoint.X + 100, ThickRayInterPoint.Y, ThickRayInterPoint.Z));
+            Line innerRefLine = new Line(SpanRayInterPoint, new Point3d(SpanRayInterPoint.X + 100, SpanRayInterPoint.Y, SpanRayInterPoint.Z));
+            Line outerRefLine = new Line(ThickRayInterPoint, new Point3d(ThickRayInterPoint.X + 100, ThickRayInterPoint.Y, ThickRayInterPoint.Z));
 
-            // 8. 绘制圆弧圆角 
-            Arc innerFillet = new Arc();
+            // 8. 计算圆角的切点绘制圆弧
 
-            InnerLine = innerEarLine;
-            OutterLine = outterEarLine;
+            // 创建管夹顶面的圆角
+            Point3d[] outerTangentPoints = GeometryTools.GetFilletTangentPoints(outerRefArc, outerRefLine, ClampFilletRadius);
 
-            RightInnerArc = innerArc;
-            RightOutterArc = outterArc;
+            // 根据切点计算圆弧起始弧度
+            Point3d outerFilletCenter = outerTangentPoints[0];
+            Point3d outerArcTangentPoint = outerTangentPoints[1];
+            Point3d outerLineTangentPoint = outerTangentPoints[2];
 
-            InnerCircle = ID_Circle;
-            OutterCircle = OD_Circle;
+            double outerFilletstartRedian = outerFilletCenter.GetRadiansToXAxis(outerArcTangentPoint);
+            double outerFilletEndRedian = outerFilletCenter.GetRadiansToXAxis(outerLineTangentPoint);
+
+            Arc outerFilletArc = new Arc(outerFilletCenter, ClampFilletRadius, outerFilletstartRedian, outerFilletEndRedian);
+            OuterFilletArc = outerFilletArc;
+
+            // 9. 绘制ear部分
+            Line outerEar = new Line(outerLineTangentPoint, new Point3d(outerLineTangentPoint.X + ClampEar, outerLineTangentPoint.Y, outerLineTangentPoint.Z));
+
+            // 10. 同理 绘制下部分的圆弧和ear
+
+            // 创建管夹底面的圆角
+            Point3d[] innerTangentPoint = GeometryTools.GetFilletTangentPoints(innerRefArc, innerRefLine, ClampFilletRadius);
+
+            // 根据切点计算圆弧起始弧度
+            Point3d innerFilletCenter = innerTangentPoint[0];
+            Point3d innerArcTangentPoint = innerTangentPoint[1];
+            Point3d innerLineTangentPoint = innerTangentPoint[2];
+
+            double innerFilletstartRedian = innerFilletCenter.GetRadiansToXAxis(innerArcTangentPoint);
+            double innerFilletEndRedian = innerFilletCenter.GetRadiansToXAxis(innerLineTangentPoint);
+
+            Arc innerFilletArc = new Arc(innerFilletCenter, ClampFilletRadius, innerFilletstartRedian, innerFilletEndRedian);
+            InnerFilletArc = innerFilletArc;
+
+            // 绘制ear部分 -- 注意长度
+            Line innerEar = new Line(innerLineTangentPoint, new Point3d(outerEar.EndPoint.X, innerLineTangentPoint.Y, innerLineTangentPoint.Z));
+
+            // 11 计算管夹圆弧
+            double innerArcStartRedian = Point3d.Origin.GetRadiansToXAxis(innerArcTangentPoint);
+            double outerArcStartRedian = Point3d.Origin.GetRadiansToXAxis(outerArcTangentPoint);
+            Arc innerArc = new Arc(Point3d.Origin, ClampInnerDiameter / 2, innerArcStartRedian, Math.PI / 2);
+            Arc outerArc = new Arc(Point3d.Origin, ClampInnerDiameter / 2 + BlockThick, outerArcStartRedian, Math.PI / 2);
+
+            // 12.绘制边线，完成闭合 
+            Line edgeLine = new Line(innerEar.EndPoint, outerEar.EndPoint);
+
+            // 13. 镜像
+
+            EdgeLine = edgeLine;
+            InnerArc = innerArc;
+            OuterArc = outerArc;
+            InnerEar = innerEar;
+            OutEar = outerEar;
+            InnerRefLine = innerRefLine;
+            OuterRefLine = outerRefLine;
+
+            InnerRefArc = innerRefArc;
+            OuterRefArc = outerRefArc;
+
+            InnerRefCircle = ID_Circle;
+            OuterRefCircle = OD_Circle;
             SpanRay = spanRay;
             ThickRay = thickRay;
         }

@@ -432,16 +432,23 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         {
             TowHolePipeClamp towHolePipeClamp = new TowHolePipeClamp(156, 6, 4, 10, 25, "碳钢", 35, 50, 14);
 
-            ObjectId RightInnerArcId = db.AddEntityToModelSpace(towHolePipeClamp.RightInnerArc);
-            ObjectId RightOutterArc = db.AddEntityToModelSpace(towHolePipeClamp.RightOutterArc);
-            ObjectId InnerLineId = db.AddEntityToModelSpace(towHolePipeClamp.InnerLine);
-            ObjectId OutterLineId = db.AddEntityToModelSpace(towHolePipeClamp.OutterLine);
+            // db.AddEntityToModelSpace(towHolePipeClamp.InnerRefArc);
+            // db.AddEntityToModelSpace(towHolePipeClamp.OuterRefArc);
 
-            AutoCadTools.ExecuteFilletByObjectId(RightInnerArcId, InnerLineId, 10);
-            AutoCadTools.ExecuteFilletByObjectId(RightOutterArc, OutterLineId, 10);
+            // db.AddEntityToModelSpace(towHolePipeClamp.InnerRefLine);
+            // db.AddEntityToModelSpace(towHolePipeClamp.OuterRefLine);
 
-            // db.AddEntityToModelSpace(towHolePipeClamp.OutterCircle);
-            // db.AddEntityToModelSpace(towHolePipeClamp.InnerCircle);
+            db.AddEntityToModelSpace(towHolePipeClamp.OuterFilletArc);
+            db.AddEntityToModelSpace(towHolePipeClamp.InnerFilletArc);
+
+            db.AddEntityToModelSpace(towHolePipeClamp.OutEar);
+            db.AddEntityToModelSpace(towHolePipeClamp.InnerEar);
+            db.AddEntityToModelSpace(towHolePipeClamp.InnerArc);
+            db.AddEntityToModelSpace(towHolePipeClamp.OuterArc);
+            db.AddEntityToModelSpace(towHolePipeClamp.EdgeLine);
+
+            // db.AddEntityToModelSpace(towHolePipeClamp.OuterRefCircle);
+            // db.AddEntityToModelSpace(towHolePipeClamp.InnerRefCircle);
             // db.AddEntityToModelSpace(towHolePipeClamp.SpanRay);
             // db.AddEntityToModelSpace(towHolePipeClamp.ThickRay);
         }

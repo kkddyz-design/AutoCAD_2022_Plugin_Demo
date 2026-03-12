@@ -94,18 +94,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         }
 
 
-        /// <summary>
-        /// 相切相切半径创建圆弧
-        /// </summary>
-        /// <returns></returns>
-        public static ObjectId AddArcToModelSpace(this Database db, Arc refArc, Line refLine, double radius)
-        {
-            // 使用工具类计算切点 
-
-            // 
-        }
-
-
         /*
          * 绘制圆
          */

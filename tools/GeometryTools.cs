@@ -4,8 +4,10 @@
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 
@@ -369,7 +371,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
             // 4. 处理交点结果
             if(intersectPoints.Count == 0) {
-                throw new Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
+                throw new System.Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
             }
             else if(intersectPoints.Count == 1) {
                 // 只有1个交点（相切），直接返回
@@ -420,7 +422,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
             // 4. 处理无交点情况
             if(intersectPoints.Count == 0) {
-                throw new Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
+                throw new System.Exception($"射线（起点：{ray.BasePoint}）与圆（圆心：{circle.Center}，半径：{circle.Radius}）无交点！");
             }
 
             // 5. 转换为可枚举集合
@@ -465,6 +467,199 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                 });
         }
 
+        #region 基于参考圆弧和直线，通过相切相切半径的方式计算圆弧，并直接返回圆弧和直线上的切点
+
+
+        private const double Tolerance = 1e-6;
+
+        /// <summary>
+        /// 计算圆角弧与参考圆弧和参考直线的切点
+        /// </summary>
+        /// <param name="refArc">参考圆弧（圆心必须在原点0,0）</param>
+        /// <param name="refLine">参考直线</param>
+        /// <param name="filletRadius">圆角半径</param>
+        /// <returns>Point3d[2] - [0]圆弧上的切点, [1]直线上的切点; 若无解返回null</returns>
+        public static Point3d[] GetFilletTangentPoints(Arc refArc, Line refLine, double filletRadius)
+        {
+            // 1. 基础验证
+            if(refArc == null || refLine == null || filletRadius <= Tolerance) {
+                return null;
+            }
+
+            // 验证圆心是否在原点（允许小误差）
+            if(Math.Abs(refArc.Center.X) > Tolerance || Math.Abs(refArc.Center.Y) > Tolerance || Math.Abs(refArc.Center.Z) > Tolerance) {
+                return null;
+            }
+
+            try {
+                double arcRadius = refArc.Radius;
+
+                // 2. 转换为2D坐标（直接取X,Y，Z=0）
+                Point2d lineStart2d = new Point2d(refLine.StartPoint.X, refLine.StartPoint.Y);
+                Point2d lineEnd2d = new Point2d(refLine.EndPoint.X, refLine.EndPoint.Y);
+                Line2d refLine2d = new Line2d(lineStart2d, lineEnd2d);
+
+                // 3. 创建圆心轨迹圆：半径为 arcRadius + filletRadius，圆心在原点
+                double centerDistance = arcRadius + filletRadius;
+
+                // 创建完整圆：使用三点构造函数
+                Point2d pointOnCircle = new Point2d(centerDistance, 0); // 圆上的点（正X轴方向）
+                Point2d origin2d = new Point2d(0, 0);
+                CircularArc2d centerLocusCircle = new CircularArc2d(origin2d, centerDistance, 0, 2 * Math.PI, new Vector2d(1, 0), true);
+
+                // 4. 创建直线的等距线（向上偏移）
+                Point2d offsetStartPoint = new Point2d(refLine.StartPoint.X, refLine.StartPoint.Y + filletRadius);
+                Point2d offsetEndPoint = new Point2d(refLine.EndPoint.X, refLine.EndPoint.Y + filletRadius);
+
+                Line2d offsetLine2d = new Line2d(offsetStartPoint, offsetEndPoint);
+
+                // 5. 求交点 -- 圆角圆心
+                List<Point2d> intersectionPoints = new List<Point2d>();
+                GetIntersectionPoints(offsetLine2d, centerLocusCircle, intersectionPoints);
+
+                // 6. 筛选第一象限内的点（X>0, Y>0）
+                var firstQuadrantPoints = intersectionPoints
+                    .Where(p => p.X > Tolerance && p.Y > Tolerance)
+                    .ToList();
+
+                if(firstQuadrantPoints.Count == 0) {
+                    return null;
+                }
+
+                // 7. 取第一个第一象限的点（通常是最合适的）
+                Point2d bestCenter2d = firstQuadrantPoints.First();
+                Point3d filletCenter3d = new Point3d(bestCenter2d.X, bestCenter2d.Y, 0);
+
+                // 8. 计算切点
+                Point3d arcTangentPoint = GetArcTangentPoint(arcRadius, filletCenter3d);
+                Point3d lineTangentPoint = GetLineTangentPoint(refLine, filletCenter3d);
+
+                // 9. 验证切点是否有效
+                if(IsPointOnArc(refArc, arcTangentPoint) && IsPointOnLine(refLine, lineTangentPoint)) {
+                    return new Point3d[] { filletCenter3d, arcTangentPoint, lineTangentPoint };
+                }
+
+                return null;
+            }
+            catch(System.Exception ex) {
+                Debug.WriteLine($"计算错误: {ex.Message}");
+                return null;
+            }
+        }
+
+        #region 私有辅助方法
+
+        /// <summary>
+        /// 直线向上偏移（针对第一象限）
+        /// </summary>
+        private static Line2d OffsetLineUpward(Line2d line, double distance)
+        {
+            // 获取直线的方向向量
+            Vector2d dir = (line.EndPoint - line.StartPoint).GetNormal();
+
+            // 在Z=0平面中，向上法向量 = (-Y, X)
+            Vector2d up = new Vector2d(-dir.Y, dir.X).GetNormal();
+
+            // 偏移
+            return new Line2d(
+                line.StartPoint + up * distance,
+                line.EndPoint + up * distance
+            );
+        }
+
+        /// <summary>
+        /// 获取两条曲线的交点
+        /// </summary>
+        private static void GetIntersectionPoints(Curve2d curve1, Curve2d curve2, List<Point2d> points)
+        {
+            if(curve1 == null || curve2 == null) {
+                return;
+            }
+
+            try {
+                CurveCurveIntersector2d intersector = new CurveCurveIntersector2d(
+                    curve1, curve2, new Tolerance(Tolerance, Tolerance));
+
+                int pointCount = intersector.NumberOfIntersectionPoints;
+
+                for(int i = 0; i < pointCount; i++) {
+                    Point2d intersectionPoint = intersector.GetIntersectionPoint(i);
+
+                    // 去重
+                    if(!points.Any(p => p.GetDistanceTo(intersectionPoint) < Tolerance)) {
+                        points.Add(intersectionPoint);
+                    }
+                }
+            }
+            catch {
+                // 忽略异常
+            }
+        }
+
+        /// <summary>
+        /// 获取圆弧上的切点（圆心在原点）
+        /// </summary>
+        private static Point3d GetArcTangentPoint(double arcRadius, Point3d filletCenter)
+        {
+            // 从原点指向圆角圆心的方向
+            Vector3d direction = new Vector3d(filletCenter.X, filletCenter.Y, 0).GetNormal();
+
+            // 切点 = 方向 * 圆弧半径
+            return new Point3d(
+                direction.X * arcRadius,
+                direction.Y * arcRadius,
+                0
+            );
+        }
+
+        /// <summary>
+        /// 获取直线上的切点
+        /// </summary>
+        private static Point3d GetLineTangentPoint(Line line, Point3d filletCenter)
+        {
+            return line.GetClosestPointTo(filletCenter, false);
+        }
+
+        /// <summary>
+        /// 验证点是否在圆弧上
+        /// </summary>
+        private static bool IsPointOnArc(Arc arc, Point3d point)
+        {
+            // 检查距离
+            double distToCenter = point.DistanceTo(arc.Center);
+            if(Math.Abs(distToCenter - arc.Radius) > Tolerance) {
+                return false;
+            }
+
+            // 检查角度范围
+            Vector3d dir = point - arc.Center;
+            Plane plane = new Plane(Point3d.Origin, arc.Normal);
+            double angle = dir.AngleOnPlane(plane);
+
+            double startAngle = arc.StartAngle;
+            double endAngle = arc.EndAngle;
+
+            if(startAngle <= endAngle) {
+                return angle >= startAngle - Tolerance && angle <= endAngle + Tolerance;
+            }
+            else {
+                return angle >= startAngle - Tolerance || angle <= endAngle + Tolerance;
+            }
+        }
+
+        /// <summary>
+        /// 验证点是否在直线上
+        /// </summary>
+        private static bool IsPointOnLine(Line line, Point3d point)
+        {
+            Point3d closest = line.GetClosestPointTo(point, false);
+            return closest.DistanceTo(point) < Tolerance;
+        }
+        #endregion
+
+        #endregion
     }
 
 }
+
+
