@@ -252,7 +252,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             ClampLength = intLen;
 
             // 将展开长写入
-            BlockName = $"{ClampMaterial}-内径{ClampInnerDiameter}-长{ClampLength}-宽{ClampWidth}-耳长{ClampEar}-开孔{clampHole}-厚度{thick}-数量{count}";
+            BlockName = $"{ClampMaterial}-厚度{thick}-内径{ClampInnerDiameter}-长{ClampLength}-宽{ClampWidth}-耳长{ClampEar}-开孔{clampHole}-数量{count}";
 
             // 绘制对应展开图形
 
