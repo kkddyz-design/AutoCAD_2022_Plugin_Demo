@@ -1,7 +1,9 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block;
 using AutoCAD_2022_Plugin_Demo.tools;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using System;
 using System.Collections.Generic;
@@ -306,8 +308,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             string filePath = FileTools.OpenFileWithSheetSelect();
             string[] paths = filePath.Split('|');
 
-            // 读取文件数据
-            List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
+            List<List<string>> excelData = null;
+            try {
+                // 读取文件数据
+                excelData = FileTools.ReadExcelData(paths[0], paths[1]);
+            }
+            catch(IndexOutOfRangeException) {
+                Editor editor = Application.DocumentManager.MdiActiveDocument.Editor;
+                editor.WriteMessage("用户未选择文档");
+                return;
+            }
 
             // 创建对象数组
             List<TowHolePipeClamp> towHolePipeClampsList = new List<TowHolePipeClamp>();

@@ -35,12 +35,13 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         {
             // 选择文件
             WinForms.OpenFileDialog openFileDialog = new WinForms.OpenFileDialog()
+
             {
                 Title = "打开文件",
-
                 Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
-
-                InitialDirectory = @"E:\desktop\中石油华东院",
+                InitialDirectory = "E:\\dsektop\\",
+                CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
+                RestoreDirectory = true // 关闭对话框后恢复原目录
             };
 
             // 显示Form
@@ -66,7 +67,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             {
                 Title = "打开文件",
                 Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
-                InitialDirectory = "ClampHoleMargin:\\desktop\\",
+                InitialDirectory = "E:\\desktop\\",
                 CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
                 RestoreDirectory = true // 关闭对话框后恢复原目录
             };
