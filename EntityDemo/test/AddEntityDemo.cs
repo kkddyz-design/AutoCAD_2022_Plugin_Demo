@@ -430,7 +430,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         [CommandMethod("TestClamp")]
         public static void TestClamp()
         {
-            TowHolePipeClamp towHolePipeClamp = new TowHolePipeClamp(156, 6, 4, 10, 25, "碳钢", 35, 50, 14);
+            // TowHolePipeClamp towHolePipeClamp = new TowHolePipeClamp(156, 6, 4, 10, 25, "碳钢", 35, 50, 14);
+            TowHolePipeClamp towHolePipeClamp = new TowHolePipeClamp(156, 6, 4, 10, 25, 50, 35, 14, 75, "碳钢");
 
             // db.AddEntityToModelSpace(towHolePipeClamp.InnerRefArc);
             // db.AddEntityToModelSpace(towHolePipeClamp.OuterRefArc);

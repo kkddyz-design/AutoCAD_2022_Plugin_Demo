@@ -300,11 +300,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         }
 
 
-        /// <summary>
-        /// 这个函数用于绘制保冷管夹,给定参数：内径 管夹厚度 开档 R角 数量 耳朵长 孔径 孔边距
-        /// </summary>
-        /// <param name="db"></param>
-        public static void AddBaoLenToModelSpaceByExcel(this Database db)
+        public static void AddTwoHoleClampToModelSpaceByExcel(this Database db)
         {
             // 选择数据表格
             string filePath = FileTools.OpenFileWithSheetSelect();
@@ -313,7 +309,88 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             // 读取文件数据
             List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
 
-            // 创建管夹对象
+            // 创建对象数组
+            List<TowHolePipeClamp> towHolePipeClampsList = new List<TowHolePipeClamp>();
+            string[] rowData = new string[excelData[0].Count];
+
+            // 遍历list 创建块定义
+
+            for(int rowIndex = 1; rowIndex < excelData.Count; rowIndex++) {
+                List<string> row = excelData[rowIndex];
+                if(row == null || row.Count == 0) {
+                    Console.WriteLine($"第{rowIndex + 1}行：空行");
+                    continue;
+                }
+
+                Console.Write($"第{rowIndex + 1}行：");
+                for(int colIndex = 0; colIndex < row.Count; colIndex++) {
+                    string cellValue = row[colIndex] ?? string.Empty;
+
+                    // 读取一行数据到内存 
+                    rowData[colIndex] = cellValue;
+                }
+
+                // 创建TowHolePipeClamp对象
+
+                double innerDiameter = double.Parse(rowData[1]);
+                int thick = int.Parse(rowData[2]);
+                int count = int.Parse(rowData[3]);
+                double filletRadius = double.Parse(rowData[4]);
+                double span = double.Parse(rowData[5]);
+                double clampEar = double.Parse(rowData[6]);
+                double holeMargin = double.Parse(rowData[7]);
+                double clampHole = double.Parse(rowData[8]);
+
+                // rowData[9]是clampLength  rowData[12]是管夹规格 
+                double clampWidth = double.Parse(rowData[10]);
+                string material = rowData[11];
+                TowHolePipeClamp clamp = new TowHolePipeClamp(innerDiameter, thick, count, filletRadius, span, clampEar, holeMargin, clampHole, clampWidth, material);
+
+                // rib_Plate存入内存
+                towHolePipeClampsList.Add(clamp);
+            }
+
+            // 初始化插入位置 当换行时,Y改变,X从1000开始
+            double init_Y = 1000;
+            double cur_X = 1000;
+            double cur_Y = 1000;
+            bool isFirstLoop = true;
+
+            // 记录上一个插入块的长度,高度
+            // double lastBlockL = 0;
+            // double lastBlockH = 0;
+            int curThick = -1;
+
+            // 写入块定义
+            foreach(TowHolePipeClamp clamp in towHolePipeClampsList) {
+                // 查询是否已经写入
+                ObjectId objectId = db.GetBlockIdByName(clamp.BlockName);
+                if(objectId == ObjectId.Null) {
+                    // 写入块定义
+                    objectId = db.AddBlockTableRecord(clamp.BlockName, clamp.entityList);
+                }
+
+                // 计算插入nextPosition
+                if(isFirstLoop) {
+                    // 初始化curThick
+                    curThick = clamp.BlockThick;
+                    isFirstLoop = false;
+                }
+                else {
+                    if(clamp.BlockThick == curThick) {
+                        // 更新curPosition
+                        cur_Y -= (clamp.ClampWidth + 50 + clamp.ClampInnerDiameter) * 1.5;
+                    }
+                    else {
+                        curThick = clamp.BlockThick;
+                        cur_X += (1000 + clamp.ClampLength * 2);
+                        cur_Y = init_Y;
+                    }
+                }
+
+                // 写入块参照
+                db.AddBlockReferenceToModelSpace(objectId, new Point3d(cur_X, cur_Y, 0));
+            }
         }
 
     }

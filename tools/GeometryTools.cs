@@ -16,6 +16,31 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
     public static class GeometryTools
     {
+
+        /// <summary>
+        /// 扩展point3d的offset方法
+        /// </summary>
+        /// <param name="originalPoint"></param>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        /// <param name="offsetZ"></param>
+        /// <returns>偏移后的point3d对象</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Point3d offset(this Point3d originalPoint, double offsetX, double offsetY, double offsetZ)
+        {
+            // 健壮性校验：防止传入 null 导致空指针异常
+            if(originalPoint == null) {
+                throw new ArgumentNullException(nameof(originalPoint), "原始坐标点不能为 null");
+            }
+
+            // 计算平移后的新坐标
+            double newX = originalPoint.X + offsetX;
+            double newY = originalPoint.Y + offsetY;
+            double newZ = originalPoint.Z + offsetZ;
+
+            // 返回新的 Point3D 对象（原始对象保持不变，符合不可变设计原则）
+            return new Point3d(newX, newY, newZ);
+        }
         /*
          * 判断三点是否共线
          */

@@ -86,15 +86,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddRibPlateToModelSpaceByExcel();
         }
 
-        [CommandMethod("AddBaoLen")]
-        public static void AddBaoLenByExcel()
-        {
-        }
-
         [CommandMethod("OpenFileWithSheetSelect")]
         public static void TestOpenExcel()
         {
             string filePath = FileTools.OpenFileWithSheetSelect();
+        }
+
+        [CommandMethod("addTwoHoleClamp")]
+        public static void AddTwoHoleClamp()
+        {
+            db.AddTwoHoleClampToModelSpaceByExcel();
         }
 
     }

@@ -1,8 +1,11 @@
-﻿using AutoCAD_2022_Plugin_Demo.tools;
+﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
+using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Line = Autodesk.AutoCAD.DatabaseServices.Line;
 
 
 namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
@@ -11,7 +14,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
     /// <summary>
     /// 双孔管夹类 - 包括A2,A3,A22
     /// </summary>
-    public  class TowHolePipeClamp : AbstractBlock
+    public class TowHolePipeClamp : AbstractBlock
     {
 
         /// <summary>
@@ -62,21 +65,21 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         // 上面是属性，下面是管夹对应的图元对象
 
 
-        public Arc InnerRefArc { get; set; }
+        // public Arc InnerRefArc { get; set; }
 
-        public Arc OuterRefArc { get; set; }
+        // public Arc OuterRefArc { get; set; }
 
-        public Circle InnerRefCircle { get; set; }
+        // public Circle InnerRefCircle { get; set; }
 
-        public Circle OuterRefCircle { get; set; }
+        // public Circle OuterRefCircle { get; set; }
 
-        public Ray SpanRay { get; set; }
+        // public Ray SpanRay { get; set; }
 
-        public Ray ThickRay { get; set; }
+        // public Ray ThickRay { get; set; }
 
-        public Line InnerRefLine { get; set; }
+        // public Line InnerRefLine { get; set; }
 
-        public Line OuterRefLine { get; set; }
+        // public Line OuterRefLine { get; set; }
 
         public Arc OuterFilletArc { get; set; }
 
@@ -90,8 +93,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public Arc OuterArc { get; set; }
 
-
         public Line EdgeLine { get; set; }
+
+        public Line Xline { get; set; }
 
         public TowHolePipeClamp(
             double innerDiameter,
@@ -99,10 +103,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             int count,
             double filletRadius,
             double span,
-            string material,
-            double holeMargin,
             double clampEar,
-            double clampHole
+            double holeMargin,
+            double clampHole,
+            double clampWidth,
+            string material
 
         )
         {
@@ -116,9 +121,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             ClampHoleMargin = holeMargin;
             ClampEar = clampEar;
             ClampHole = clampHole;
+            ClampWidth = clampWidth;
 
             // 1. 定义块名
-            BlockName = $"{ClampMaterial}-内径{ClampInnerDiameter}-宽{ClampWidth}-耳长{ClampEar}-开孔{clampHole}-厚度{thick}-数量{count}";
 
             // 2. 创建内径圆
             Circle ID_Circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), ClampInnerDiameter / 2);
@@ -205,23 +210,125 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             // 12.绘制边线，完成闭合 
             Line edgeLine = new Line(innerEar.EndPoint, outerEar.EndPoint);
 
-            // 13. 镜像
+            // 13. 绘制X轴线 
+            Point3d XlineStartPoint = new Point3d(edgeLine.StartPoint.X, 0, 0);
+            Point3d XlineEndPoint = new Point3d(-edgeLine.StartPoint.X, 0, 0);
+            Line xline = new Line(XlineStartPoint, XlineEndPoint);
 
+            // 14. 计算展开长
+            ClampLength = (outerArc.Length + outerFilletArc.Length + outerEar.Length) * 2;
+
+            // 15. 加入entitylist
+            entityList.Add(outerArc);
+            entityList.Add(innerArc);
+            entityList.Add(outerFilletArc);
+            entityList.Add(innerFilletArc);
+            entityList.Add(outerEar);
+            entityList.Add(innerEar);
+            entityList.Add(edgeLine);
+            entityList.Add(xline);
+
+            List<Entity> mirroredEntityList = new List<Entity>();
+
+            // 16 将entityList中的对象镜像
+            foreach(Entity entity in entityList) {
+                mirroredEntityList.Add(entity.MirrorEntity(Point3d.Origin, new Point3d(0, 1, 0))[0]);
+            }
+
+            foreach(Entity entity in mirroredEntityList) {
+                entityList.Add(entity);
+            }
+
+            // 将图元对象写入属性
             EdgeLine = edgeLine;
             InnerArc = innerArc;
             OuterArc = outerArc;
             InnerEar = innerEar;
             OutEar = outerEar;
-            InnerRefLine = innerRefLine;
-            OuterRefLine = outerRefLine;
+            Xline = xline;
 
-            InnerRefArc = innerRefArc;
-            OuterRefArc = outerRefArc;
+            int intLen = (int)Math.Round(ClampLength);
 
-            InnerRefCircle = ID_Circle;
-            OuterRefCircle = OD_Circle;
-            SpanRay = spanRay;
-            ThickRay = thickRay;
+            ClampLength = intLen;
+
+            // 将展开长写入
+            BlockName = $"{ClampMaterial}-内径{ClampInnerDiameter}-长{ClampLength}-宽{ClampWidth}-耳长{ClampEar}-开孔{clampHole}-厚度{thick}-数量{count}";
+
+            // 绘制对应展开图形
+
+            // 计算左下角坐标
+            Point3d leftDownPoint = new Point3d(-ClampLength / 2, -ClampWidth - 100, 0);
+
+            // 创建矩形 
+            Rectangle clampRect = new Rectangle(leftDownPoint, ClampLength, ClampWidth);
+
+            // 绘制标线
+            Point3d leftLineStart = leftDownPoint.offset(clampEar, 0, 0);
+            Point3d leftLineEnd = leftLineStart.offset(0, ClampWidth, 0);
+            Line leftLine = new Line(leftLineStart, leftLineEnd);
+            leftLine.ChangeColor(1);
+
+            Point3d rightLineStart = leftDownPoint.offset(ClampLength - clampEar, 0, 0);
+            Point3d rifhtLineEnd = rightLineStart.offset(0, ClampWidth, 0);
+            Line rightLine = new Line(rightLineStart, rifhtLineEnd);
+            rightLine.ChangeColor(1);
+
+            Point3d midLineStart = leftDownPoint.offset(ClampLength / 2, 0, 0);
+            Point3d midLineEnd = midLineStart.offset(0, ClampWidth, 0);
+            Line midLine = new Line(midLineStart, midLineEnd);
+            midLine.ChangeColor(1);
+
+            // 绘制孔
+            Point3d center1 = leftDownPoint.offset(ClampEar / 2, ClampHoleMargin, 0);
+            Point3d center2 = leftDownPoint.offset(0, ClampWidth, 0).offset(ClampEar / 2, -ClampHoleMargin, 0);
+            Circle circle1 = new Circle(center1, new Vector3d(0, 0, 1), ClampHole / 2);
+            Circle circle2 = new Circle(center2, new Vector3d(0, 0, 1), ClampHole / 2);
+            Circle circle3 = (Circle)circle1.MirrorEntity(midLineStart, midLineEnd)[0];
+            Circle circle4 = (Circle)circle2.MirrorEntity(midLineStart, midLineEnd)[0];
+
+            // 绘制文本
+            int textHeight = 20;
+
+            // OD
+            DBText ODText = new DBText();
+            ODText.TextString = $"{ClampInnerDiameter}";
+            ODText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
+            ODText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
+            ODText.Height = textHeight;
+            ODText.AlignmentPoint = leftLineStart.offset((ClampLength / 2 - ClampEar) / 2, ClampWidth / 2, 0);
+
+            // BlockCount 左对齐
+
+            DBText countText = new DBText();
+            countText.TextString = $"+={BlockCount}";
+
+            countText.HorizontalMode = TextHorizontalMode.TextLeft;     // 左对齐
+            countText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
+            countText.Height = textHeight / 2;
+            countText.AlignmentPoint = ODText.AlignmentPoint.offset(-20, 30, 0);
+
+            // BlockThick 左对齐
+
+            DBText thickText = new DBText();
+            thickText.TextString = $"+={BlockThick}";
+
+            thickText.HorizontalMode = TextHorizontalMode.TextLeft;     // 左对齐
+            thickText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
+            thickText.Height = textHeight / 2;
+            thickText.AlignmentPoint = countText.AlignmentPoint.offset(0, textHeight / 2 * 1.6, 0);
+
+            // 加入EntityList
+            entityList.Add(leftLine);
+            entityList.Add(rightLine);
+            entityList.Add(midLine);
+            entityList.Add(clampRect);
+            entityList.Add(circle1);
+            entityList.Add(circle2);
+            entityList.Add(circle3);
+            entityList.Add(circle4);
+            entityList.Add(ODText);
+            entityList.Add(countText);
+            entityList.Add(thickText);
         }
 
     }
