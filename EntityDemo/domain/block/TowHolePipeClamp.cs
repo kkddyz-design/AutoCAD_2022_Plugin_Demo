@@ -278,13 +278,24 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             Line midLine = new Line(midLineStart, midLineEnd);
             midLine.ChangeColor(1);
 
-            // 绘制孔
+            // 绘制孔 -- 保冷管夹是一排两个孔，
             Point3d center1 = leftDownPoint.offset(ClampEar / 2, ClampHoleMargin, 0);
-            Point3d center2 = leftDownPoint.offset(0, ClampWidth, 0).offset(ClampEar / 2, -ClampHoleMargin, 0);
             Circle circle1 = new Circle(center1, new Vector3d(0, 0, 1), ClampHole / 2);
+
+            Point3d center2 = leftDownPoint.offset(0, ClampWidth, 0).offset(ClampEar / 2, -ClampHoleMargin, 0);
             Circle circle2 = new Circle(center2, new Vector3d(0, 0, 1), ClampHole / 2);
             Circle circle3 = (Circle)circle1.MirrorEntity(midLineStart, midLineEnd)[0];
             Circle circle4 = (Circle)circle2.MirrorEntity(midLineStart, midLineEnd)[0];
+
+            // 如果C1=C2,不Add C2,C4
+
+            entityList.Add(circle1);
+            entityList.Add(circle3);
+
+            if(!center1.Equals(center2)) {
+                entityList.Add(circle2);
+                entityList.Add(circle4);
+            }
 
             // 绘制文本
             int textHeight = 20;
@@ -322,10 +333,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             entityList.Add(rightLine);
             entityList.Add(midLine);
             entityList.Add(clampRect);
-            entityList.Add(circle1);
-            entityList.Add(circle2);
-            entityList.Add(circle3);
-            entityList.Add(circle4);
+
             entityList.Add(ODText);
             entityList.Add(countText);
             entityList.Add(thickText);
