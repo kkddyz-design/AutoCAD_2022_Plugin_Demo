@@ -321,7 +321,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             // BlockThick 左对齐
 
             DBText thickText = new DBText();
-            thickText.TextString = $"+={BlockThick}";
+            thickText.TextString = $"*={BlockThick}";
 
             thickText.HorizontalMode = TextHorizontalMode.TextLeft;     // 左对齐
             thickText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
