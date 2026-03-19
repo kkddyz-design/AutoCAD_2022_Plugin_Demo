@@ -133,7 +133,6 @@
     <Compile Include="tools\AutoCadTools.cs" />
     <Compile Include="tools\BlockTools.cs" />
     <Compile Include="Commands.cs" />
-    <Compile Include="EntityDemo\domain\BlockConvertorImpl.cs" />
     <Compile Include="EntityDemo\domain\block\AbstractBlock.cs" />
     <Compile Include="EntityDemo\domain\block\BlockDemo.cs" />
     <Compile Include="EntityDemo\domain\block\Rect_Plate.cs" />

@@ -21,6 +21,15 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public double Rib_Plate_OD { get; set; }
 
+        public string Tag { get; set; }
+
+        public double ButtomMagrin { get; set; }
+
+
+        public string Material { get; set; }
+
+
+        public DBText CountText { get; set; }
 
         /// <summary>
         /// 创建Rib_Plate(肋板)的块定义
@@ -45,13 +54,24 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             double ribPlateThick,
             double buttomMagrin,
             double upperDistance,
-            double cnt,
+            int cnt,
             double textHeight,
             double textMargin
         )
         {
+            Tag = tag;
+            BlockCount = cnt;
+            ButtomMagrin = buttomMagrin;
+            Material = material;
+
             // 定义块名
-            BlockName = $"Rib_Plate_{OD}_{H}_{material}_{ribPlateThick}_{cnt}_{buttomMagrin}_{upperDistance}";
+
+            if(H < 100) {
+                BlockName = $"肋板_{material}_管径{OD}_H0{H}_厚{ribPlateThick}_边距{buttomMagrin}_{cnt}个";
+            }
+            else {
+                BlockName = $"肋板_{material}_管径{OD}_H{H}_厚{ribPlateThick}_边距{buttomMagrin}_{cnt}个";
+            }
 
             // 创建OD圆
             Circle od_circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), OD / 2);
@@ -110,19 +130,21 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             DBText countText = new DBText();
             countText.TextString = $"+={cnt}";
 
-            countText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
+            countText.HorizontalMode = TextHorizontalMode.TextLeft;     // 左对齐
             countText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             countText.Height = textHeight / 2;
-            countText.AlignmentPoint = new Point3d(h_line_end.X, BlockPosition.Y + Rib_Plate_H / 2, 0);
+            countText.AlignmentPoint = new Point3d(h_line_end.X - textMargin * 2, BlockPosition.Y + Rib_Plate_H / 2, 0);
+
+            CountText = countText;
 
             // 创建文本-BlockThick
             DBText thickText = new DBText();
             thickText.TextString = $"*={ribPlateThick}";
 
-            thickText.HorizontalMode = TextHorizontalMode.TextMid;     // 水平居中
+            thickText.HorizontalMode = TextHorizontalMode.TextLeft;     // 左对齐
             thickText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             thickText.Height = textHeight / 2;
-            thickText.AlignmentPoint = new Point3d(h_line_end.X, BlockPosition.Y + Rib_Plate_H / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
+            thickText.AlignmentPoint = new Point3d(h_line_end.X - textMargin * 2, BlockPosition.Y + Rib_Plate_H / 2 + textHeight / 2 * 1.6, 0); // 行间距为文字高度1.6倍
 
             // 创建文本-H
             DBText HText = new DBText();
@@ -174,6 +196,22 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             if(!material.Equals("碳钢")) {
                 entityList.SetEntityListColor(6);
             }
+        }
+
+
+        public void ChangeCount(int count)
+        {
+            BlockCount = count;
+
+            if(Rib_Plate_H < 100) {
+                BlockName = $"肋板_{Material}_管径{Rib_Plate_OD}_H0{Rib_Plate_H}_厚{BlockThick}_边距{ButtomMagrin}_{BlockCount}个";
+            }
+            else {
+                BlockName = $"肋板_{Material}_管径{Rib_Plate_OD}_H{Rib_Plate_H}_厚{BlockThick}_边距{ButtomMagrin}_{BlockCount}个";
+            }
+
+            // 修改内容
+            CountText.TextString = $"+={BlockCount}";
         }
 
     }

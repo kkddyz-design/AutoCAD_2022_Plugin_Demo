@@ -1,5 +1,4 @@
-﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain;
-using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block;
+﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block;
 using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -19,6 +18,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         public static ObjectId AddRectPlateToModelSpace(
             this Database db,
             Point3d position,
+            double OD,
             double height,
             double width,
             int thick,
@@ -27,7 +27,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         )
         {
             // 创建块定义 
-            Rect_Plate rectPlate = new Rect_Plate(height, width, thick, count, remarkStr);
+            Rect_Plate rectPlate = new Rect_Plate(OD, height, width, thick, count, remarkStr);
 
             // 查询块定义是否存在
             ObjectId rectPlateId = db.GetBlockIdByName(rectPlate.BlockName);
@@ -42,27 +42,10 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             return refId;
         }
 
-        /// <summary>
-        /// 调用FileTools.ReadEntityFromTXT，传入将contents(数据行)转换为Entity[]的委托方法
-        /// </summary>
-        /// <param name="db"></param>
-        /// <returns></returns>
-        public static Entity[] AddRectPlateToModelSpaceByTxt(this Database db)
-        {
-            // 选择文件
-            string filePath = FileTools.OpenFile();
-
-            // 读取文件数据
-            string[] contents = FileTools.readTxtData(filePath);
-
-            // 调用convertor转换数据
-            return BlockConvertorImpl.RectPlateConvertor_TXT(db, contents);
-        }
 
         public static void AddRectPlateToModelSpaceByExcel(this Database db)
         {
             // 选择文件
-            // string filePath = FileTools.OpenFile();
 
             string filePath = FileTools.OpenFileWithSheetSelect();
 
@@ -71,8 +54,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             // 读取文件数据
             List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
 
-            // 创建对象数组
+            // 创建对象字典
             List<Rect_Plate> rect_plates = new List<Rect_Plate>();
+
+            Dictionary<string, Rect_Plate> rect_plates_dictionary = new Dictionary<string, Rect_Plate>();
+
             string[] rowData = new string[excelData[0].Count];
 
             // 遍历list 创建块定义
@@ -94,6 +80,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 // 创建rib_plate对象
                 string specStr = rowData[0];
                 int count = int.Parse(rowData[1]);
+                int OD = int.Parse(rowData[2]);
 
                 // 创建Rect_palte对象
                 string material;
@@ -101,9 +88,20 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 double rectH;
                 double rectL;
                 ConvertExcelData(specStr, out material, out thick, out rectH, out rectL); // 解析规格，初始化变量
-                Rect_Plate rect_Plate = new Rect_Plate(rectH, rectL, thick, count, material);
-                rect_plates.Add(rect_Plate); // 存入对象列表
+                Rect_Plate rect_Plate = new Rect_Plate(OD, rectH, rectL, thick, count, material);
+
+                // 存入字典
+                rect_plates.Add(rect_Plate);
+
+                // rect_plates_dictionary.Add(rect_Plate.Tag, rect_Plate);
             }
+
+            // 过滤重复项 按照如果 material OD rectH rectL thick 完全相同
+            // foreach(string tag in rect_plates_dictionary.Keys) {
+            // foreach(Rect_Plate rect_Plate in ))
+            // {
+            // }
+            // }
 
             // 初始化插入位置 当换行时,Y改变,X从1000开始
             double init_Y = 1000;
@@ -222,6 +220,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             List<Rib_Plate> rib_plates = new List<Rib_Plate>();
             string[] rowData = new string[excelData[0].Count];
 
+            // 创建对象字典
+            Dictionary<string, Rib_Plate> rib_dictionary = new Dictionary<string, Rib_Plate>();
+
             // 遍历list 创建块定义
             for(int rowIndex = 1; rowIndex < excelData.Count; rowIndex++) {
                 List<string> row = excelData[rowIndex];
@@ -248,7 +249,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 double ribPlateThick = double.Parse(rowData[6]);
                 double buttomMatgin = double.Parse(rowData[7]);
                 double upperDistance = double.Parse(rowData[8]);
-                double cnt = double.Parse(rowData[9]);
+                int cnt = int.Parse(rowData[9]);
 
                 double textHeight = 10;
                 double textMargin = 5;
@@ -257,7 +258,21 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                     buttomMatgin, upperDistance, cnt, textHeight, textMargin);
 
                 // rib_Plate存入内存
-                rib_plates.Add(rib_Plate);
+                Rib_Plate exist_rib_plate = null;
+
+                // 如果已经存在，累加数量
+                if(rib_dictionary.TryGetValue(rib_Plate.Tag, out exist_rib_plate))
+                {
+                    exist_rib_plate.ChangeCount(exist_rib_plate.BlockCount + rib_Plate.BlockCount);
+                }
+                else {
+                    rib_dictionary.Add(rib_Plate.Tag, rib_Plate);
+                }
+            }
+
+            // 将去重后的对象放入数组
+            foreach(Rib_Plate plate in rib_dictionary.Values) {
+                rib_plates.Add(plate);
             }
 
             // 初始化插入位置 当换行时,Y改变,X从1000开始

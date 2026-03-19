@@ -17,6 +17,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public string Rect_Plate_Material { get; set; }
 
+        public string Tag { get; set; }
+
         /// <summary>
         /// 矩形下料
         /// </summary>
@@ -25,7 +27,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         /// <param name="thick">矩形厚度</param>
         /// <param name="count">数量</param>
         /// <param name="material">材质</param>
-        public Rect_Plate(double rectH, double rectL, int thick, int count, string material)
+        public Rect_Plate(double OD, double rectH, double rectL, int thick, int count, string material)
         {
             double textHeight = 20;
             double textMargin = 10;
@@ -33,13 +35,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             // 当height<100,按比例缩放字体大小
             FormatTools.ScaleTextHeightAndMargin(rectH, rectL, ref textHeight, ref textMargin);
 
-            //// 确保width >= rectH -- 不需要
-            // if(rectL < rectH) {
-            // exchange(ref rectL, ref rectH);
-            // }
-
             // 封装数据
-            BlockName = $"Rectplate_{rectH}_{rectL}_{thick}_{count}_{material}";
+            Tag = $"Rectplate_{material}_管径{OD}_H{rectH}_L{rectL}_厚{thick}";
+
+            if(rectH < 100) {
+                BlockName = $"Rectplate_{material}_管径{OD}_H0{rectH}_L{rectL}_厚{thick}_{count}个";
+            }
+            else {
+                BlockName = $"Rectplate_{material}_管径{OD}_H{rectH}_L{rectL}_厚{thick}_{count}个";
+            }
+
             Rect_Plate_H = rectH;
             Rect_Plate_L = rectL;
             BlockThick = thick;
@@ -90,14 +95,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             // 插入点以左上角，但是定义的Rect对象是以左下角为基点创建对象的
             entityList.MoveEntity(new Point3d(0, rectH, 0), Point3d.Origin);
-        }
-
-        private static void exchange(ref double a, ref double b)
-        {
-            double temp;
-            temp = a;
-            a = b;
-            b = temp;
         }
 
     }
