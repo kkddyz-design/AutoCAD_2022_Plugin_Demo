@@ -199,7 +199,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         }
 
 
-        public void ChangeCount(int count)
+        public void SetBlockNameAndCount(int count)
         {
             BlockCount = count;
 

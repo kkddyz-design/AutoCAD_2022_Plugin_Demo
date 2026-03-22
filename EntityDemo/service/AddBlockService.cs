@@ -55,6 +55,9 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
 
             // 创建对象字典
+            Dictionary<string, Rect_Plate> rectPlate_dictionary = new Dictionary<string, Rect_Plate>();
+
+            // 创建对象列表
             List<Rect_Plate> rect_plates = new List<Rect_Plate>();
 
             Dictionary<string, Rect_Plate> rect_plates_dictionary = new Dictionary<string, Rect_Plate>();
@@ -78,30 +81,33 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 }
 
                 // 创建rib_plate对象
-                string specStr = rowData[0];
-                int count = int.Parse(rowData[1]);
-                int OD = int.Parse(rowData[2]);
+                string specStr = rowData[0];        // 方板规格
+                int count = int.Parse(rowData[1]);  // 方板数量
+                int OD = int.Parse(rowData[2]);     // 方板OD
 
                 // 创建Rect_palte对象
                 string material;
                 int thick;
                 double rectH;
                 double rectL;
-                ConvertExcelData(specStr, out material, out thick, out rectH, out rectL); // 解析规格，初始化变量
+                ConvertRectPlate(specStr, out material, out thick, out rectH, out rectL); // 解析规格，初始化变量
                 Rect_Plate rect_Plate = new Rect_Plate(OD, rectH, rectL, thick, count, material);
 
-                // 存入字典
-                rect_plates.Add(rect_Plate);
+                // 如果不存在，加入字典；如果已经存在，累加数量,
+                Rect_Plate exist_rect_plate = null;
 
-                // rect_plates_dictionary.Add(rect_Plate.Tag, rect_Plate);
+                if(rect_plates_dictionary.TryGetValue(rect_Plate.Tag, out exist_rect_plate)) {
+                    exist_rect_plate.SetBlockNameAndCount(exist_rect_plate.BlockCount + rect_Plate.BlockCount);
+                }
+                else {
+                    rect_plates_dictionary.Add(rect_Plate.Tag, rect_Plate);
+                }
             }
 
-            // 过滤重复项 按照如果 material OD rectH rectL thick 完全相同
-            // foreach(string tag in rect_plates_dictionary.Keys) {
-            // foreach(Rect_Plate rect_Plate in ))
-            // {
-            // }
-            // }
+            // 将去重后的对象放入数组
+            foreach(Rect_Plate plate in rect_plates_dictionary.Values) {
+                rect_plates.Add(plate);
+            }
 
             // 初始化插入位置 当换行时,Y改变,X从1000开始
             double init_Y = 1000;
@@ -155,7 +161,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         }
 
 
-        private static bool ConvertExcelData(string inputStr, out string material, out int thick, out double rectH, out double rectL)
+        private static bool ConvertRectPlate(string inputStr, out string material, out int thick, out double rectH, out double rectL)
         {
             // 初始化out参数（C#语法要求：out参数必须在方法内全部赋值）
             material = string.Empty;
@@ -239,7 +245,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                     rowData[colIndex] = cellValue;
                 }
 
-                // 创建rib_plate对象
+                // 解析Excel数据
                 string tag = rowData[0];
                 double OD = double.Parse(rowData[1]);
                 double H = double.Parse(rowData[2]);
@@ -254,16 +260,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 double textHeight = 10;
                 double textMargin = 5;
 
+                // rib_plate对象
                 Rib_Plate rib_Plate = new Rib_Plate(tag, OD, H, material, offset, rectSpec, ribPlateThick,
                     buttomMatgin, upperDistance, cnt, textHeight, textMargin);
 
-                // rib_Plate存入内存
+                // 如果不存在，加入字典；如果已经存在，累加数量,
                 Rib_Plate exist_rib_plate = null;
 
-                // 如果已经存在，累加数量
                 if(rib_dictionary.TryGetValue(rib_Plate.Tag, out exist_rib_plate))
                 {
-                    exist_rib_plate.ChangeCount(exist_rib_plate.BlockCount + rib_Plate.BlockCount);
+                    exist_rib_plate.SetBlockNameAndCount(exist_rib_plate.BlockCount + rib_Plate.BlockCount);
                 }
                 else {
                     rib_dictionary.Add(rib_Plate.Tag, rib_Plate);

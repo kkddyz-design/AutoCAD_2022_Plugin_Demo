@@ -19,6 +19,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public string Tag { get; set; }
 
+
+        public double OD { get; set; }
+
+        public DBText CountText { get; set; }
+
         /// <summary>
         /// 矩形下料
         /// </summary>
@@ -27,29 +32,29 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         /// <param name="thick">矩形厚度</param>
         /// <param name="count">数量</param>
         /// <param name="material">材质</param>
-        public Rect_Plate(double OD, double rectH, double rectL, int thick, int count, string material)
+        public Rect_Plate(double od, double rectH, double rectL, int thick, int count, string material)
         {
+            // 初始化私有变量
+            OD = od;
+            Rect_Plate_H = rectH;
+            Rect_Plate_L = rectL;
+            BlockThick = thick;
+            BlockCount = count;
+            Rect_Plate_Material = material;
+
             double textHeight = 20;
             double textMargin = 10;
 
             // 当height<100,按比例缩放字体大小
             FormatTools.ScaleTextHeightAndMargin(rectH, rectL, ref textHeight, ref textMargin);
 
-            // 封装数据
-            Tag = $"Rectplate_{material}_管径{OD}_H{rectH}_L{rectL}_厚{thick}";
+            // 设置Tag
+            Tag = $"方板_{material}_管径{od}_H{rectH}_L{rectL}_厚{thick}";
 
-            if(rectH < 100) {
-                BlockName = $"Rectplate_{material}_管径{OD}_H0{rectH}_L{rectL}_厚{thick}_{count}个";
-            }
-            else {
-                BlockName = $"Rectplate_{material}_管径{OD}_H{rectH}_L{rectL}_厚{thick}_{count}个";
-            }
-
-            Rect_Plate_H = rectH;
-            Rect_Plate_L = rectL;
-            BlockThick = thick;
-            BlockCount = count;
-            Rect_Plate_Material = material;
+            // 设置count
+            DBText countText = new DBText(); // 确保初始化设置时,countText不为空
+            CountText = countText;
+            SetBlockNameAndCount(BlockCount);
 
             // 创建矩形 
             Rectangle rectangle = new Rectangle(Point3d.Origin, rectL, rectH);
@@ -64,7 +69,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             height_width.AlignmentPoint = new Point3d(rectL / 2, textMargin * 2 + 10, 0);
 
             // 创建文本-BlockCount 居中对齐
-            DBText countText = new DBText();
+
             countText.TextString = $"+={count}";
 
             countText.HorizontalMode = TextHorizontalMode.TextLeft;     // 板厚数量左对齐
@@ -95,6 +100,22 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             // 插入点以左上角，但是定义的Rect对象是以左下角为基点创建对象的
             entityList.MoveEntity(new Point3d(0, rectH, 0), Point3d.Origin);
+        }
+
+
+        public void SetBlockNameAndCount(int count)
+        {
+            BlockCount = count;
+
+            if(Rect_Plate_H < 100) {
+                BlockName = $"方板_{Rect_Plate_Material}_管径{OD}_H0{Rect_Plate_H}_L{Rect_Plate_L}_厚{BlockThick}_{BlockCount}个";
+            }
+            else {
+                BlockName = $"方板_{Rect_Plate_Material}_管径{OD}_H{Rect_Plate_H}_L{Rect_Plate_L}_厚{BlockThick}_{BlockCount}个";
+            }
+
+            // 修改内容
+            CountText.TextString = $"+={BlockCount}";
         }
 
     }
