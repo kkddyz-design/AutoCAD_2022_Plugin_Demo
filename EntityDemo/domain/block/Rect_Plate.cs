@@ -107,14 +107,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         {
             BlockCount = count;
 
-            if(Rect_Plate_H < 100) {
-                BlockName = $"方板_{Rect_Plate_Material}_管径{OD}_H0{Rect_Plate_H}_L{Rect_Plate_L}_厚{BlockThick}_{BlockCount}个";
-            }
-            else {
-                BlockName = $"方板_{Rect_Plate_Material}_管径{OD}_H{Rect_Plate_H}_L{Rect_Plate_L}_厚{BlockThick}_{BlockCount}个";
+            string ODPreText = "管径";
+            if(OD < 100) {
+                ODPreText = "管径0";
             }
 
-            // 修改内容
+            string HPreText = "H";
+            if(Rect_Plate_H < 100) {
+                HPreText = "H0";
+            }
+
+            BlockName = $"方板_{Rect_Plate_Material}_{ODPreText}{OD}_{HPreText}{Rect_Plate_H}_L{Rect_Plate_L}_厚{BlockThick}_{BlockCount}个";
+
+            // 修改DBText
             CountText.TextString = $"+={BlockCount}";
         }
 
