@@ -86,6 +86,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             db.AddRibPlateToModelSpaceByExcel();
         }
 
+        [CommandMethod("RecWithInfo")]
+        public static void AddRectWithInfo()
+        {
+            db.AddRectWithInfoFromCmd();
+        }
+
         [CommandMethod("OpenFileWithSheetSelect")]
         public static void TestOpenExcel()
         {

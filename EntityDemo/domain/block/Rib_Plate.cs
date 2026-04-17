@@ -51,7 +51,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             string material,
             double offset,
             string rectSpce,
-            double ribPlateThick,
+            int ribPlateThick,
             double buttomMagrin,
             double upperDistance,
             int cnt,
@@ -63,15 +63,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             BlockCount = cnt;
             ButtomMagrin = buttomMagrin;
             Material = material;
+            Rib_Plate_OD = OD;
+            Rib_Plate_H = H;
+            BlockThick = ribPlateThick;
+            ButtomMagrin = buttomMagrin;
 
             // 定义块名
-
-            if(H < 100) {
-                BlockName = $"肋板_{material}_管径{OD}_H0{H}_厚{ribPlateThick}_边距{buttomMagrin}_{cnt}个";
-            }
-            else {
-                BlockName = $"肋板_{material}_管径{OD}_H{H}_厚{ribPlateThick}_边距{buttomMagrin}_{cnt}个";
-            }
+            // 避免空指针异常
+            DBText countText = new DBText();
+            CountText = countText;
+            SetBlockNameAndCount(cnt);
 
             // 创建OD圆
             Circle od_circle = new Circle(Point3d.Origin, new Vector3d(0, 0, 1), OD / 2);
@@ -86,7 +87,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             // 创建底板矩形
             // 获取底板矩形长宽 -- 数据源确保是H*L的顺序
-            string[] rectParas = rectSpce.Split(new char[] { '*' });
+            // 从底板规格提取底板厚度和底板宽度
+
+            // 定义分割符：δ、*、=（三个分隔符一起分割）
+            char[] separators = { 'δ', '*', '=' };
+
+            // 分割字符串，同时去除空字符串
+            string[] rectParas = rectSpce.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
             double rectH = int.Parse(rectParas[0]);
             double rectL = int.Parse(rectParas[1]);
             Rectangle bRect = new Rectangle(new Point3d(-rectL / 2, h_line_end.Y, 0), rectL, rectH);
@@ -127,15 +135,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
             // 创建文本-BlockCount 居中对齐
 
-            DBText countText = new DBText();
             countText.TextString = $"+={cnt}";
 
             countText.HorizontalMode = TextHorizontalMode.TextLeft;     // 左对齐
             countText.VerticalMode = TextVerticalMode.TextVerticalMid;  // 垂直居中
             countText.Height = textHeight / 2;
             countText.AlignmentPoint = new Point3d(h_line_end.X - textMargin * 2, BlockPosition.Y + Rib_Plate_H / 2, 0);
-
-            CountText = countText;
 
             // 创建文本-BlockThick
             DBText thickText = new DBText();
@@ -203,12 +208,17 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         {
             BlockCount = count;
 
+            string ODPreText = "管径";
+            if(Rib_Plate_OD < 100) {
+                ODPreText = "管径0";
+            }
+
+            string HPreText = "H";
             if(Rib_Plate_H < 100) {
-                BlockName = $"肋板_{Material}_管径{Rib_Plate_OD}_H0{Rib_Plate_H}_厚{BlockThick}_边距{ButtomMagrin}_{BlockCount}个";
+                HPreText = "H0";
             }
-            else {
-                BlockName = $"肋板_{Material}_管径{Rib_Plate_OD}_H{Rib_Plate_H}_厚{BlockThick}_边距{ButtomMagrin}_{BlockCount}个";
-            }
+
+            BlockName = $"肋板_{Material}_{ODPreText}{Rib_Plate_OD}_{HPreText}{Rib_Plate_H}_厚{BlockThick}_边距{ButtomMagrin}_{BlockCount}个";
 
             // 修改内容
             CountText.TextString = $"+={BlockCount}";

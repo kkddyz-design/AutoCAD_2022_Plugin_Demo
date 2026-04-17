@@ -80,7 +80,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                     rowData[colIndex] = cellValue;
                 }
 
-                // 创建rib_plate对象
+                // 读取表格数据
                 string specStr = rowData[0];        // 方板规格
                 int count = int.Parse(rowData[1]);  // 方板数量
                 int OD = int.Parse(rowData[2]);     // 方板OD
@@ -252,7 +252,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 string material = rowData[3];
                 double offset = double.Parse(rowData[4]);
                 string rectSpec = rowData[5];
-                double ribPlateThick = double.Parse(rowData[6]);
+                int ribPlateThick = int.Parse(rowData[6]);
                 double buttomMatgin = double.Parse(rowData[7]);
                 double upperDistance = double.Parse(rowData[8]);
                 int cnt = int.Parse(rowData[9]);
@@ -267,8 +267,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 // 如果不存在，加入字典；如果已经存在，累加数量,
                 Rib_Plate exist_rib_plate = null;
 
-                if(rib_dictionary.TryGetValue(rib_Plate.Tag, out exist_rib_plate))
-                {
+                if(rib_dictionary.TryGetValue(rib_Plate.Tag, out exist_rib_plate)) {
                     exist_rib_plate.SetBlockNameAndCount(exist_rib_plate.BlockCount + rib_Plate.BlockCount);
                 }
                 else {
@@ -424,6 +423,204 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             }
         }
 
+
+        /// <summary>
+        /// 通过命令行创建带有信息的矩形 - 先创建块再插入点
+        /// </summary>
+        /// <param name="db"></param>
+        public static void AddRectWithInfoFromCmd1(this Database db)
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+
+            // ============= 1. 解析命令行参数（如 89-100） =============
+            double rectH = 0, rectL = 0;
+            int thick = 0, count = 0;
+
+            // 在 ParseCommandArgs 方法里解析出 89、100，然后把这两个数字赋值给外面的 rectH 和 rectL。
+            bool hasVaildGrgs = ParseCommandArgs(ed, ref rectH, ref rectL, ref thick, ref count);
+
+            if(hasVaildGrgs) {
+                ed.WriteMessage($"成功获取到参数rectH:{rectH},rectL{rectL}");
+
+                // public Rect_Plate(double od, double rectH, double rectL, int thick, int count, string material)
+                Rect_Plate plateWithInfo = new Rect_Plate(rectH, rectL, thick, count);
+
+                // 创建块定义
+                string btrName = $"PlateWithInfo_板厚10_个数8_{rectH}-{rectL}";
+                ObjectId btrId = db.AddBlockTableRecord(btrName, plateWithInfo.entityList);
+
+                // 创建块参照
+                BlockReference br_plateWithInfo = new BlockReference(new Point3d(0, 0, 0), btrId);
+
+                // 调用Jig类
+
+                // 1. 直接实例化，不需要 using
+                BlockJig jig = new BlockJig(br_plateWithInfo, new Point3d(0, 0, 0));
+
+                // 2. 执行拖拽
+                PromptResult result = ed.Drag(jig);
+
+                // 3. 结果处理
+                if(result.Status == PromptStatus.OK) {
+                    // 用户点击确认，正式将块加入数据库
+                    using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                        BlockTableRecord ms = trans.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                        ms.AppendEntity(br_plateWithInfo);
+                        trans.AddNewlyCreatedDBObject(br_plateWithInfo, true);
+                        trans.Commit();
+                    }
+                    ed.WriteMessage("\n插入成功！");
+                }
+                else {
+                    // 用户取消，tempBlock 自动被垃圾回收
+                    ed.WriteMessage("\n已取消。");
+                }
+            }
+            else {
+                ed.WriteMessage("未获取到合法参数！！！");
+            }
+        }
+
+        /// <summary>
+        /// 过命令行创建带有信息的矩形 - 先插入点再创建块
+        /// </summary>
+        /// <param name="db"></param>
+        public static void AddRectWithInfoFromCmd(this Database db)
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+
+            try {
+                // ============= 【第一步：先让用户点插入点】=============
+                PromptPointOptions ppo = new PromptPointOptions("\n请指定块的插入点: ");
+                PromptPointResult pointRes = ed.GetPoint(ppo);
+
+                // 如果用户取消或点错
+                if(pointRes.Status != PromptStatus.OK) {
+                    ed.WriteMessage("\n已取消操作。");
+                    return;
+                }
+                Point3d insertPos = pointRes.Value; // 拿到用户点的坐标
+
+                // ============= 【第二步：再输入参数】=============
+                double rectH = 0, rectL = 0;
+                int thick = 0, count = 0;
+
+                bool hasVaildGrgs = ParseCommandArgs(ed, ref rectH, ref rectL, ref thick, ref count);
+
+                if(!hasVaildGrgs) {
+                    ed.WriteMessage("\n未获取到合法参数！");
+                    return;
+                }
+
+                ed.WriteMessage($"\n成功获取参数：H={rectH}, L={rectL}, 厚={thick}, 数量={count}");
+
+                // ============= 【第三步：创建块 + 插入到刚才点的位置】=============
+                using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                    // 1. 创建带参数的块对象
+                    Rect_Plate plateWithInfo = new Rect_Plate(rectH, rectL, thick, count);
+
+                    // 2. 创建块定义
+                    string btrName = $"Plate_{thick}厚_{count}个_{rectH}-{rectL}";
+                    ObjectId btrId = db.AddBlockTableRecord(btrName, plateWithInfo.entityList);
+
+                    // 3. 创建块参照（用用户刚才点的坐标）
+                    BlockReference br = new BlockReference(insertPos, btrId);
+
+                    // 4. 加入模型空间
+                    BlockTableRecord ms = trans.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                    ms.AppendEntity(br);
+                    trans.AddNewlyCreatedDBObject(br, true);
+
+                    trans.Commit();
+                    ed.WriteMessage("\n✅ 块已成功插入！");
+                }
+            }
+            catch(Exception ex) {
+                ed.WriteMessage($"\n错误：{ex.Message}");
+            }
+        }
+
+
+        #region AddRectWithInfoFromCmd的工具方法
+
+        /// <summary>
+        /// 解析命令行参数（如 addr 89-100 → 长89 宽100）
+        /// </summary>
+        private static bool ParseCommandArgs(Editor ed, ref double len, ref double wid, ref int thick, ref int count)
+        {
+            // 1. 获取用户输入
+            // 提示语更新，说明支持 '-' 或 '空格'
+            PromptStringOptions strOpts = new PromptStringOptions(
+                "\n请输入参数 (格式: 长 宽 厚 数量) 或 (长-宽-厚-数量): ");
+            strOpts.AllowSpaces = true;
+
+            PromptResult res = ed.GetString(strOpts);
+
+            if(res.Status != PromptStatus.OK) {
+                return false;
+            }
+
+            string userInput = res.StringResult;
+
+            if(string.IsNullOrWhiteSpace(userInput)) {
+                ed.WriteMessage("\n 输入不能为空。");
+                return false;
+            }
+
+            // 2. 解析参数 (关键修改部分)
+            // 定义分隔符：横杠和空格
+            char[] separators = new char[] { '-', ' ' };
+
+            // 使用 RemoveEmptyEntries 防止因连续空格或两端空格导致的空字符串错误
+            string[] parts = userInput.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+            // 必须严格等于 4 个参数
+            if(parts.Length != 4) {
+                ed.WriteMessage("\n 格式错误：请输入 4 个参数 (长 宽 厚 数量)，可用空格或横杠分隔。");
+                return false;
+            }
+
+            // 3. 尝试转换并校验数值
+            double tempLen, tempWid;
+            int tempThick, tempCount;
+
+            // 参数 1: 长 (double)
+            if(!double.TryParse(parts[0], out tempLen) || tempLen <= 0) {
+                ed.WriteMessage("\n 错误：第一个参数(长)必须是大于0的数字。");
+                return false;
+            }
+
+            // 参数 2: 宽 (double)
+            if(!double.TryParse(parts[1], out tempWid) || tempWid <= 0) {
+                ed.WriteMessage("\n 错误：第二个参数(宽)必须是大于0的数字。");
+                return false;
+            }
+
+            // 参数 3: 厚 (int)
+            if(!int.TryParse(parts[2], out tempThick) || tempThick <= 0) {
+                ed.WriteMessage("\n 错误：第三个参数(厚)必须是大于0的整数。");
+                return false;
+            }
+
+            // 参数 4: 数量 (int)
+            if(!int.TryParse(parts[3], out tempCount) || tempCount <= 0) {
+                ed.WriteMessage("\n 错误：第四个参数(数量)必须是大于0的整数。");
+                return false;
+            }
+
+            // 4. 赋值给 ref 参数
+            len = tempLen;
+            wid = tempWid;
+            thick = tempThick;
+            count = tempCount;
+
+            return true;
+        }
+        #endregion
+
     }
 
 }
+

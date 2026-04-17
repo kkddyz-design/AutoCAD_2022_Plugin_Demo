@@ -166,6 +166,7 @@
     <None Include="start.scr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="tools\BlockJig.cs" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\MSTest.Analyzers.4.0.2\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />

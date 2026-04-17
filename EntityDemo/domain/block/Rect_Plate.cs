@@ -24,11 +24,19 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public DBText CountText { get; set; }
 
+
+        /// <summary>
+        /// 用于cmd创建带有info的rect对象,仅 输入double rectH, double rectL, int thick, int count
+        /// </summary>
+        public Rect_Plate(double rectH, double rectL, int thick, int count) : this(11451, rectH, rectL, thick, count, "碳钢")
+        {
+        }
+
         /// <summary>
         /// 矩形下料
         /// </summary>
-        /// <param name="width">矩形宽度</param>
-        /// <param name="height">矩形高度</param>
+        /// <param name="rectL">矩形宽度</param>
+        /// <param name="rectH">矩形高度</param>
         /// <param name="thick">矩形厚度</param>
         /// <param name="count">数量</param>
         /// <param name="material">材质</param>
