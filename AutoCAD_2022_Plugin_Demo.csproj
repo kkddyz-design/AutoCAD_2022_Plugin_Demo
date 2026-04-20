@@ -161,6 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="config\config.json" />
+    <None Include="config\配置框架设计" />
     <None Include="readme.md" />
     <None Include="packages.config" />
     <None Include="start.scr">
