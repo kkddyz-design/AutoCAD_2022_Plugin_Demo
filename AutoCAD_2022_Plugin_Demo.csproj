@@ -130,8 +130,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntityDemo\domain\block\TowHolePipeClamp.cs" />
-    <Compile Include="tools\AutoCadTools.cs" />
-    <Compile Include="tools\BlockTools.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="EntityDemo\domain\block\AbstractBlock.cs" />
     <Compile Include="EntityDemo\domain\block\BlockDemo.cs" />
@@ -144,7 +142,7 @@
     <Compile Include="EntityDemo\service\AddEntityService.cs" />
     <Compile Include="tools\DBTools.cs" />
     <Compile Include="EntityDemo\domain\EntityModifier.cs" />
-    <Compile Include="EntityDemo\test\AddBlockDemo.cs" />
+    <Compile Include="EntityDemo\test\BlockCommands.cs" />
     <Compile Include="EntityDemo\test\ModifyEntityDemo.cs" />
     <Compile Include="EntityDemo\service\ModifyEntityService.cs" />
     <Compile Include="tools\GeometryTools.cs" />
@@ -157,6 +155,8 @@
     <Compile Include="interactionDemo\MyCommand.cs" />
     <Compile Include="interactionDemo\Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="tools\PromptTools.cs" />
+    <Compile Include="tools\SelectionHelper.cs" />
     <Compile Include="WinFroms\SaveFileDialog.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -468,6 +468,12 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             return refId;
         }
 
+        /// <summary>
+        /// 通过块名获取ObjectId
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="btrName"></param>
+        /// <returns></returns>
         public static ObjectId GetBlockIdByName(this Database db, string btrName)
         {
             ObjectId btrId = ObjectId.Null;
@@ -482,6 +488,33 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
             return btrId;
             #endregion
+        }
+
+
+        /// <summary>
+        /// 根据块名称获取块定义
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="blockName"></param>
+        /// <returns></returns>
+        public static BlockTableRecord GetBlockTableRecordByName(this Database db, string blockName)
+        {
+            if(string.IsNullOrEmpty(blockName)) {
+                return null;
+            }
+
+            using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+
+                if(bt.Has(blockName)) {
+                    BlockTableRecord blockDef = trans.GetObject(bt[blockName], OpenMode.ForRead) as BlockTableRecord;
+                    trans.Commit();
+                    return blockDef;
+                }
+
+                trans.Commit();
+                return null;
+            }
         }
 
     }

@@ -428,7 +428,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         /// 通过命令行创建带有信息的矩形 - 先创建块再插入点
         /// </summary>
         /// <param name="db"></param>
-        public static void AddRectWithInfoFromCmd1(this Database db)
+        public static void AddRectWithInfoFromCmd(this Database db)
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Editor ed = doc.Editor;
@@ -447,7 +447,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 Rect_Plate plateWithInfo = new Rect_Plate(rectH, rectL, thick, count);
 
                 // 创建块定义
-                string btrName = $"PlateWithInfo_板厚10_个数8_{rectH}-{rectL}";
+                string btrName = $"PlateWithInfo_t10_n8_{rectH}_{rectL}";
                 ObjectId btrId = db.AddBlockTableRecord(btrName, plateWithInfo.entityList);
 
                 // 创建块参照
@@ -486,7 +486,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         /// 过命令行创建带有信息的矩形 - 先插入点再创建块
         /// </summary>
         /// <param name="db"></param>
-        public static void AddRectWithInfoFromCmd(this Database db)
+        public static void AddRectWithInfoFromCmd1(this Database db)
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Editor ed = doc.Editor;

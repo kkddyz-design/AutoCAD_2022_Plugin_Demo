@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using acad_AppService = Autodesk.AutoCAD.ApplicationServices;
 using WinForms = System.Windows.Forms;
-
 
 [assembly: CommandClass(typeof(FileTools))]
 
@@ -20,7 +20,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
     /// <summary>
     /// 这个类专门用于从数据源读取数据，仅仅封装读取的原始数据，而不包括数据格式转换等。
     /// </summary>
-    public static  class FileTools
+    public static class FileTools
     {
 
         public static Database db = acad_AppService.Application.DocumentManager.MdiActiveDocument.Database;
@@ -30,29 +30,53 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         /// 通过OpenFileDialog选择文件；该方法被OpenFileWithSheetSelect替代(需要手动设置选择的表格)
         /// </summary>
         /// <returns></returns>
-        [Obsolete]
         public static string OpenFile()
         {
-            // 选择文件
-            WinForms.OpenFileDialog openFileDialog = new WinForms.OpenFileDialog()
+            //// 选择文件
+            // WinForms.OpenFileDialog openFileDialog = new WinForms.OpenFileDialog()
+            // {
+            // Title = "打开文件",
+            // Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
+            // InitialDirectory = "E:\\dsektop\\",
+            // CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
+            // RestoreDirectory = true // 关闭对话框后恢复原目录
+            // };
 
-            {
-                Title = "打开文件",
-                Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
-                InitialDirectory = "E:\\dsektop\\",
-                CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
-                RestoreDirectory = true // 关闭对话框后恢复原目录
-            };
+            //// 显示Form
+            // WinForms.DialogResult dialogResult = openFileDialog.ShowDialog();
 
-            // 显示Form
-            WinForms.DialogResult dialogResult = openFileDialog.ShowDialog();
+            // if(dialogResult == WinForms.DialogResult.OK) {
+            // return openFileDialog.FileName;
+            // }
+            // else {
+            // return string.Empty;
+            // }
 
-            if(dialogResult == WinForms.DialogResult.OK) {
-                return openFileDialog.FileName;
+            // 【优化1】使用 using 自动释放控件，避免内存泄漏
+            using(OpenFileDialog openFileDialog = new OpenFileDialog()) {
+                openFileDialog.Title = "选择文件";
+
+                // 【优化2】你现在需要DWG，所以我给你加上，保留原有格式
+                openFileDialog.Filter = "AutoCAD 文件(*.dwg)|*.dwg|表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt|所有文件(*.*)|*.*";
+
+                // 【优化3】自动获取桌面路径（不写死），兼容所有电脑
+                openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+                openFileDialog.CheckFileExists = true;
+                openFileDialog.RestoreDirectory = true;
+
+                // 【优化4】AutoCAD 中必须用此方式显示模态对话框，防止窗口卡死
+                // 完美兼容 AutoCAD + WinForm 对话框
+                var owner = new NativeWindow();
+                owner.AssignHandle(acad_AppService.Core.Application.MainWindow.Handle);
+
+                if(openFileDialog.ShowDialog(owner) == DialogResult.OK) {
+                    return openFileDialog.FileName;
+                }
             }
-            else {
-                return string.Empty;
-            }
+
+            // 取消选择返回空
+            return string.Empty;
         }
 
 
@@ -63,7 +87,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
         public static string OpenFileWithSheetSelect()
         {
-            WinForms.OpenFileDialog openFileDialog = new WinForms.OpenFileDialog()
+            OpenFileDialog openFileDialog = new OpenFileDialog()
             {
                 Title = "打开文件",
                 Filter = "表格(*.xlsx)|*.xlsx|文本文件(*.txt)|*.txt",
@@ -71,9 +95,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                 CheckFileExists = true, // 校验文件是否存在，避免选到无效路径
                 RestoreDirectory = true // 关闭对话框后恢复原目录
             };
-
-            // 显示文件选择对话框
-            WinForms.DialogResult dialogResult = openFileDialog.ShowDialog();
+            DialogResult dialogResult = openFileDialog.ShowDialog();
             if(dialogResult != WinForms.DialogResult.OK) {
                 return string.Empty;
             }
@@ -112,12 +134,11 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                     // 多个工作表，弹出选择框让用户指定
                     else {
                         // 用ListBox做简易工作表选择窗口（也可自定义WinForm窗体）
-                        using(WinForms.Form sheetSelectForm = new WinForms.Form()) {
+                        using(Form sheetSelectForm = new Form()) {
                             sheetSelectForm.Text = "选择工作表";
                             sheetSelectForm.Size = new Size(300, 400);
                             sheetSelectForm.StartPosition = WinForms.FormStartPosition.CenterParent; // 居中显示
-
-                            WinForms.ListBox listBox = new WinForms.ListBox()
+                            ListBox listBox = new ListBox()
                             {
                                 Dock = WinForms.DockStyle.Fill,
                                 Font = new System.Drawing.Font("微软雅黑", 10),
@@ -125,8 +146,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                             };
                             listBox.Items.AddRange(sheetNames.ToArray()); // 绑定工作表名称
                             listBox.SelectedIndex = 0; // 默认选中第一个工作表
-
-                            WinForms.Button confirmBtn = new WinForms.Button()
+                            Button confirmBtn = new Button()
                             {
                                 Text = "确认选择",
                                 Dock = WinForms.DockStyle.Bottom,
@@ -278,6 +298,55 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                 throw;
             }
             return excelData;
+        }
+
+
+        /// <summary>
+        /// 从外部 DWG 文件中，根据块名获取块定义（后台读取，不打开界面）
+        /// </summary>
+        /// <param name="dwgFilePath">DWG 文件完整路径</param>
+        /// <param name="blockName">要读取的块名称</param>
+        /// <returns>返回块定义 BlockTableRecord，不存在则返回 null</returns>
+        public static BlockTableRecord GetBlockTableRecordFromDwg(string dwgFilePath, string blockName)
+        {
+            // 1. 校验文件
+            if(!File.Exists(dwgFilePath)) {
+                return null;
+            }
+
+            if(string.IsNullOrEmpty(blockName)) {
+                return null;
+            }
+
+            // 2. 创建一个新的后台数据库
+            using(Database db = new Database(false, true)) {
+                try {
+                    // 3. 读取 DWG 文件到数据库（后台静默读取）
+                    db.ReadDwgFile(dwgFilePath, FileShare.Read, true, string.Empty);
+
+                    // 4. 开启事务
+                    using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                        // 5. 打开块表
+                        BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+
+                        // 6. 判断块是否存在
+                        if(bt != null && bt.Has(blockName)) {
+                            // 7. 获取块定义并返回
+                            BlockTableRecord btr = trans.GetObject(bt[blockName], OpenMode.ForRead) as BlockTableRecord;
+                            trans.Commit();
+                            return btr;
+                        }
+
+                        trans.Commit();
+                    }
+                }
+                catch {
+                    // 读取失败返回 null
+                    return null;
+                }
+            }
+
+            return null;
         }
 
     }
