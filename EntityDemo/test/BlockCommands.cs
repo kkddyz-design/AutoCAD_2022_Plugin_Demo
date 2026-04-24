@@ -7,6 +7,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -175,48 +176,37 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             }
         }
 
-        [CommandMethod("TestGetBlockByNameFromDwg")]
-        public static void TestGetBlockByNameFromDwg()
+        [CommandMethod("GetDBText")]
+        public static void TestGetDBText()
         {
-            // 获取当前文档和编辑器
-            Document doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
-            Editor ed = doc.Editor;
-            Database db = doc.Database;
+            // 1. 获取编辑器
+            Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
 
-            // -------------------先设置块路径------------------------------------------------
-            string filepath = FileTools.OpenFile();
+            // 2. 获取选中文字 
+            List<DBText> textList = SelectionHelper.GetSelectedTexts(ed);
 
-            string btrName = PromptTools.PromptWithString(ed, "/n请输入块名");
+            // 将选中DB对象二维排序
+            List<List<DBText>> cadRows = SelectionHelper.SortTextsByPosition(textList);
 
-            BlockTableRecord btr = FileTools.GetBlockTableRecordFromDwg(filepath, btrName);
+            // 3. 创建 二维字符串列表（对应表格行+列）
+            List<List<string>> tableContents = new List<List<string>>();
 
-            // 遍历块里的所有 ObjectId , 找到文本为+=的
-            using(Transaction trans = db.TransactionManager.StartTransaction()) {
-                foreach(ObjectId entId in btr) {
-                    // 通过事务打开实体
-                    Entity ent = trans.GetObject(entId, OpenMode.ForWrite) as Entity;
-
-                    if(ent != null) {
-                        // 输出实体类型
-                        ed.WriteMessage($"\n实体类型：{ent.GetType().Name}");
-
-                        // ==============================================
-                        // 你可以在这里判断实体类型，做任何操作
-                        // ==============================================
-                     if(ent is DBText text) {
-                         ed.WriteMessage($"获取到文本:{text.TextString}");
-
-                         // 修改块定义数量
-                         if(text.TextString.Equals("+=8")) {
-                             text.TextString = "+=100";
-                         }
-                     }
+            // 4. 双层遍历：逐行 → 逐列 提取文字
+            foreach(var row in cadRows) {
+                List<string> rowContents = new List<string>();
+                foreach(DBText text in row) {
+                    if(text != null && !string.IsNullOrEmpty(text.TextString)) {
+                        rowContents.Add(text.TextString);
                     }
                 }
 
-                trans.Commit();
-                ed.WriteMessage("\n===== 遍历完成 =====");
+                // 将一行的文字添加到二维列表
+                tableContents.Add(rowContents);
             }
+
+            // 5. 写入Excel（升级后的方法，支持多行多列）
+            string savePath = @"E:\desktop\CAD数据.xlsx";
+            FileTools.WriteToExcel(tableContents, savePath);
         }
 
     }

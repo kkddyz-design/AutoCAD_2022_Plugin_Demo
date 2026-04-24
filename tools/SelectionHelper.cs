@@ -1,8 +1,8 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 
 namespace AutoCAD_2022_Plugin_Demo.tools
@@ -51,59 +51,87 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         }
 
         /// <summary>
-        /// 【按类型过滤】框选获取指定类型的实体（如 DBText, Circle, Line 等）
+        /// 【固定为 DBText】框选获取所有单行文字
         /// </summary>
-        /// <typeparam name="T">目标类型：DBText / Line / Circle / MText 等</typeparam>
-        public static List<T> GetSelectedEntities<T>(Editor ed) where T : DBObject
+        public static List<DBText> GetSelectedTexts(Editor ed)
         {
-            var result = new List<T>();
+            List<DBText> textList = new List<DBText>();
 
-            // 过滤条件：只选择指定类型
-            var filter = new SelectionFilter(
+            // 过滤：只选文字
+            SelectionFilter filter = new SelectionFilter(
                 new TypedValue[]
             {
-                new TypedValue((int)DxfCode.Start, GetRXClass<T>().DxfName)
+                new TypedValue((int)DxfCode.Start, "TEXT")
             });
 
             PromptSelectionOptions pso = new PromptSelectionOptions();
-            pso.MessageForAdding = $"\n请框选【{typeof(T).Name}】类型实体：";
+            pso.MessageForAdding = "\n请框选【文字】实体：";
 
             PromptSelectionResult psr = ed.GetSelection(pso, filter);
             if(psr.Status != PromptStatus.OK) {
-                return result;
+                return textList;
             }
 
+            // ==========================================
+            // 第一步：先把所有文字 全部读出来（事务内）
+            // ==========================================
             using(Transaction tr = ed.Document.Database.TransactionManager.StartTransaction()) {
                 foreach(SelectedObject selObj in psr.Value) {
-                    if(selObj == null || !selObj.ObjectId.IsValid) {
+                    if(!selObj.ObjectId.IsValid) {
                         continue;
                     }
 
-                    T obj = selObj.ObjectId.GetObject(OpenMode.ForRead) as T;
-                    if(obj != null) {
-                        result.Add(obj);
+                    DBText text = selObj.ObjectId.GetObject(OpenMode.ForRead) as DBText;
+                    if(text != null) {
+                        textList.Add(text);
                     }
                 }
                 tr.Commit();
             }
 
-            return result;
+            return textList;
+
+            // ==========================================
+            // 第二步：全部读完后 → 统一排序（正确位置！）
+            // ==========================================
+            // List<DBText> sortedList = textList
+            // .OrderByDescending(t => t.Position.Y)  // 先按 Y 降序（上→下）
+            // .ThenBy(t => t.Position.X)             // 再按 X 升序（左→右）
+            // .ToList();
+
+            // return sortedList;
         }
+
 
         /// <summary>
-        /// 【你最需要的】直接框选获取所有 DBText（单行文字）
+        /// 对DBText按表格行列排序，返回 二维列表（行→列） 第一行 = CAD最上方行 每行内部 = 从左到右
         /// </summary>
-        public static List<DBText> GetSelectedTexts(Editor ed)
+        public static List<List<DBText>> SortTextsByPosition(List<DBText> textList)
         {
-            return GetSelectedEntities<DBText>(ed);
-        }
+            // 空数据返回空二维列表
+            if(textList == null || textList.Count == 0) {
+                return new List<List<DBText>>();
+            }
 
-        #region 内部辅助方法（获取类型RXClass）
-        private static RXClass GetRXClass<T>() where T : DBObject
-        {
-            return RXClass.GetClass(typeof(T));
+            // 同一行容差（Y坐标差距 <100 视为同一行，可根据你的图纸调整）
+            double rowTolerance = textList.First().Height;
+
+            // 核心逻辑：分组 → 排序行 → 排序列内 → 转二维列表
+            var twoDimensionalList = textList
+                // 按Y坐标分组（识别每一行）
+                .GroupBy(t => Math.Round(t.Position.Y / rowTolerance) * rowTolerance)
+
+                // 行从上到下（Y大的排前面）
+                .OrderByDescending(g => g.Key)
+
+                // 每行内部：从左到右排序
+                .Select(rowGroup => rowGroup.OrderBy(t => t.Position.X).ToList())
+
+                // 转二维列表
+                .ToList();
+
+            return twoDimensionalList;
         }
-        #endregion
 
     }
 

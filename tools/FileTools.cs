@@ -1,9 +1,12 @@
 ﻿using AutoCAD_2022_Plugin_Demo.tools;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -347,6 +350,122 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             }
 
             return null;
+        }
+
+
+        // ------------------------文件写入操作-----------------------------------------------------------//
+
+        /// <summary>
+        /// 使用 EPPlus 写入 Excel，从 A1 开始横向写入
+        /// </summary>
+        /// <param name="textList">字符串列表</param>
+        /// <param name="filePath">完整保存路径</param>
+        //public static void WriteToExcel(List<string> textList, string filePath)
+        // {
+        // // ==========================================
+        // // 【函数内部获取 Editor】
+        // // ==========================================
+        // Document doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+        // Editor ed = doc.Editor;
+
+        // // 校验数据
+        // if(textList == null || textList.Count == 0) {
+        // ed.WriteMessage("\n❌ 写入失败：数据不能为空！");
+        // return;
+        // }
+
+        // if(string.IsNullOrWhiteSpace(filePath)) {
+        // ed.WriteMessage("\n❌ 写入失败：文件路径不能为空！");
+        // return;
+        // }
+
+        // try {
+        // // EPPlus 授权声明
+        // ExcelPackage.License.SetNonCommercialPersonal("kkddyz_autocad2022_plugin");
+
+        // // 自动创建目录
+        // // Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+        // // 创建/打开 Excel
+        // using(ExcelPackage package = new ExcelPackage(filePath)) {
+        // ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+        // if(worksheet == null) {
+        // worksheet = package.Workbook.Worksheets.Add("CAD导出数据");
+        // }
+
+        // // 从第1行第1列开始横向写入
+        // for(int i = 0; i < textList.Count; i++) {
+        // worksheet.Cells[1, i + 1].Value = textList[i];
+        // }
+
+        // package.Save();
+        // }
+
+        // ed.WriteMessage($"\n Excel 保存成功：{filePath}");
+
+        // // 自动打开文件
+        // Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
+        // }
+        // catch(System.Exception ex) {
+        // ed.WriteMessage($"\n 写入失败：{ex.Message}");
+        // }
+        // }
+
+        /// <summary>
+/// 将二维数组按顺序写入excel默认表格sheet1
+/// </summary>
+        /// <param name="tableData"></param>
+        /// <param name="filePath"></param>
+        public static void WriteToExcel(List<List<string>> tableData, string filePath)
+        {
+            // 内部获取编辑器
+            Document doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+
+            // 校验
+            if(tableData == null || tableData.Count == 0) {
+                ed.WriteMessage("\n❌ 写入失败：数据不能为空！");
+                return;
+            }
+            if(string.IsNullOrWhiteSpace(filePath)) {
+                ed.WriteMessage("\n❌ 写入失败：文件路径不能为空！");
+                return;
+            }
+
+            try {
+                ExcelPackage.License.SetNonCommercialPersonal("kkddyz_autocad2022_plugin");
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                using(ExcelPackage package = new ExcelPackage(filePath)) {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets["Sheet1"];
+                    if(worksheet == null) {
+                        worksheet = package.Workbook.Worksheets.Add("Sheet1");
+                    }
+
+                    worksheet.Cells.Clear();
+
+                    // ==========================================
+                    // 核心：按 行+列 写入Excel（二维列表对应）
+                    // ==========================================
+                    for(int rowIndex = 0; rowIndex < tableData.Count; rowIndex++) {
+                        var rowData = tableData[rowIndex];
+                        for(int colIndex = 0; colIndex < rowData.Count; colIndex++) {
+                            // Excel 行号/列号从 1 开始
+                            worksheet.Cells[rowIndex + 1, colIndex + 1].Value = rowData[colIndex];
+                        }
+                    }
+
+                    package.Save();
+                }
+
+                ed.WriteMessage($"\n Excel 保存成功：{filePath}");
+
+                // 自动打开文件
+                Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
+            }
+            catch(Autodesk.AutoCAD.Runtime.Exception ex) {
+                ed.WriteMessage($"\n 写入失败：{ex.Message}");
+            }
         }
 
     }
