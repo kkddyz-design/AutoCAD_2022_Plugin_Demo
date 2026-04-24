@@ -355,65 +355,10 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
         // ------------------------文件写入操作-----------------------------------------------------------//
 
+
         /// <summary>
-        /// 使用 EPPlus 写入 Excel，从 A1 开始横向写入
+        /// 将二维数组按顺序写入excel默认表格sheet1
         /// </summary>
-        /// <param name="textList">字符串列表</param>
-        /// <param name="filePath">完整保存路径</param>
-        //public static void WriteToExcel(List<string> textList, string filePath)
-        // {
-        // // ==========================================
-        // // 【函数内部获取 Editor】
-        // // ==========================================
-        // Document doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
-        // Editor ed = doc.Editor;
-
-        // // 校验数据
-        // if(textList == null || textList.Count == 0) {
-        // ed.WriteMessage("\n❌ 写入失败：数据不能为空！");
-        // return;
-        // }
-
-        // if(string.IsNullOrWhiteSpace(filePath)) {
-        // ed.WriteMessage("\n❌ 写入失败：文件路径不能为空！");
-        // return;
-        // }
-
-        // try {
-        // // EPPlus 授权声明
-        // ExcelPackage.License.SetNonCommercialPersonal("kkddyz_autocad2022_plugin");
-
-        // // 自动创建目录
-        // // Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-        // // 创建/打开 Excel
-        // using(ExcelPackage package = new ExcelPackage(filePath)) {
-        // ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
-        // if(worksheet == null) {
-        // worksheet = package.Workbook.Worksheets.Add("CAD导出数据");
-        // }
-
-        // // 从第1行第1列开始横向写入
-        // for(int i = 0; i < textList.Count; i++) {
-        // worksheet.Cells[1, i + 1].Value = textList[i];
-        // }
-
-        // package.Save();
-        // }
-
-        // ed.WriteMessage($"\n Excel 保存成功：{filePath}");
-
-        // // 自动打开文件
-        // Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
-        // }
-        // catch(System.Exception ex) {
-        // ed.WriteMessage($"\n 写入失败：{ex.Message}");
-        // }
-        // }
-
-        /// <summary>
-/// 将二维数组按顺序写入excel默认表格sheet1
-/// </summary>
         /// <param name="tableData"></param>
         /// <param name="filePath"></param>
         public static void WriteToExcel(List<List<string>> tableData, string filePath)
@@ -424,24 +369,28 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 
             // 校验
             if(tableData == null || tableData.Count == 0) {
-                ed.WriteMessage("\n❌ 写入失败：数据不能为空！");
+                ed.WriteMessage("\n 写入失败：数据不能为空！");
                 return;
             }
             if(string.IsNullOrWhiteSpace(filePath)) {
-                ed.WriteMessage("\n❌ 写入失败：文件路径不能为空！");
+                ed.WriteMessage("\n 写入失败：文件路径不能为空！");
                 return;
             }
 
             try {
                 ExcelPackage.License.SetNonCommercialPersonal("kkddyz_autocad2022_plugin");
+
+                // 管文件夹，不存在就创建
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
                 using(ExcelPackage package = new ExcelPackage(filePath)) {
                     ExcelWorksheet worksheet = package.Workbook.Worksheets["Sheet1"];
                     if(worksheet == null) {
+                        // 如果Sheet1不存在，则新建一个名为"Sheet1"的工作表
                         worksheet = package.Workbook.Worksheets.Add("Sheet1");
                     }
 
+                    // 清空当前工作表中所有单元格的内容和格式
                     worksheet.Cells.Clear();
 
                     // ==========================================
@@ -455,6 +404,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                         }
                     }
 
+                    // 管Excel 文件，不存在就自动创建
                     package.Save();
                 }
 

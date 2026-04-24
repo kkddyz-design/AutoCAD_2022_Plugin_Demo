@@ -204,8 +204,18 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
                 tableContents.Add(rowContents);
             }
 
-            // 5. 写入Excel（升级后的方法，支持多行多列）
-            string savePath = @"E:\desktop\CAD数据.xlsx";
+            // 5. 写入Excel
+
+            // 1. 【核心】自动获取系统桌面路径（无需手动写盘符，自适应所有电脑）
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            // 2. 拼接文件名 + 生成时间戳（年月日时分秒，保证唯一）
+            string fileName = $"CAD表格_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+            // 3. 组合最终的完整保存路径（桌面 + 带时间戳的文件名）
+            // Path.Combine 智能、安全地拼接文件夹路径和文件名 / 子文件夹，自动处理路径分隔符
+            string savePath = Path.Combine(desktopPath, fileName);
+
             FileTools.WriteToExcel(tableContents, savePath);
         }
 
