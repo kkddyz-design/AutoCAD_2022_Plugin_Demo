@@ -137,7 +137,8 @@
     <Compile Include="EntityDemo\domain\block\Rib_Plate.cs" />
     <Compile Include="EntityDemo\domain\entity\Polygon.cs" />
     <Compile Include="EntityDemo\domain\entity\Rectangle.cs" />
-    <Compile Include="EntityDemo\domain\FormatTools.cs" />
+    <Compile Include="tools\ClipboardTools.cs" />
+    <Compile Include="tools\FormatTools.cs" />
     <Compile Include="EntityDemo\service\AddBlockService.cs" />
     <Compile Include="EntityDemo\service\AddEntityService.cs" />
     <Compile Include="tools\DBTools.cs" />
@@ -147,7 +148,6 @@
     <Compile Include="EntityDemo\service\ModifyEntityService.cs" />
     <Compile Include="tools\GeometryTools.cs" />
     <Compile Include="EntityDemo\test\AddEntityDemo.cs" />
-    <Compile Include="tools\HatchTools.cs" />
     <Compile Include="tools\FileTools.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="interactionDemo\CircleJig.cs" />

@@ -176,7 +176,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             }
         }
 
-        [CommandMethod("GetDBText")]
+        [CommandMethod("DBTextToExcel")]
         public static void TestGetDBText()
         {
             // 1. 获取编辑器
@@ -219,12 +219,13 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             FileTools.WriteToExcel(tableContents, savePath);
         }
 
-        [CommandMethod("GetDBText2D")]
-        public static void GetDB()
+        [CommandMethod("DBText2DToExcel")]
+        public static void GetDBText2DToExcel()
         {
             // 0. 获取编辑器
             Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
-            List<DBText> textList = SelectionHelper.GetSelectedTexts(ed);
+
+            // List<DBText> textList = SelectionHelper.GetSelectedTexts(ed);
 
             // 1. 框选实体
             List<DBObject> entities = SelectionHelper.GetSelectedEntities(ed);
@@ -273,6 +274,54 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
 
             string savePath = Path.Combine(desktopPath, fileName);
             FileTools.WriteToExcel(stringTable, savePath);
+        }
+
+
+        [CommandMethod("DBTextToClipboard")]
+        public static void GetDBTextClipboard()
+        {
+            // 0. 获取编辑器
+            Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+
+            // 1. 框选实体
+            List<DBObject> entities = SelectionHelper.GetSelectedEntities(ed);
+
+            // 2. 筛选文本、水平线、竖直线
+            List<DBText> dbTexts = new List<DBText>();
+            List<Line> verticalLines = new List<Line>();
+            List<Line> horizontalLines = new List<Line>();
+            SelectionHelper.FilterEntitiesToContainers(entities, ref dbTexts, ref verticalLines, ref horizontalLines);
+
+            // 3. 构建表格坐标（去重、排序）
+            double[][] tableCoords = SelectionHelper.BuildTableAllPointsCoordinate(horizontalLines, verticalLines);
+
+            // 4. 核心：文本匹配单元格，生成二维列表
+            List<List<DBText>> cadTable = SelectionHelper.MatchTextsToTableCells(tableCoords, dbTexts);
+
+            // 5. 将二维DBText列表转换为二维字符串列表（空值安全处理）
+
+            List<List<string>> stringTable = new List<List<string>>();
+
+            foreach(var row in cadTable) {
+                List<string> stringRow = new List<string>();
+
+                if(row != null) {
+                    foreach(var dbText in row) {
+                        // 安全获取文本，空值自动填空字符串
+                        stringRow.Add(dbText?.TextString ?? string.Empty);
+                    }
+                }
+
+                stringTable.Add(stringRow);
+            }
+
+            // 6. 将二维字符串列表转换为制表符分隔的文本（适合粘贴到Excel）
+            try {
+                ClipboardTools.CopyToExcelClipboard(stringTable);
+            }
+            catch(System.Exception e) {
+                ed.WriteMessage("用户未选择任何文本");
+            }
         }
 
     }

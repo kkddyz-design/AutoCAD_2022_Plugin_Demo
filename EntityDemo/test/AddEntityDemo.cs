@@ -116,17 +116,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         }
 
 
-        [CommandMethod("HatchDemo")]
-        public void HatchDemo()
-        {
-            // 渐变填充
-            ObjectIdCollection objIds = new ObjectIdCollection();
-            objIds.Add(db.AddCircleToModelSpace(new Point3d(100, 100, 0), 100));
-            string hatchGradientName = HatchTools.HatchGradientName.gr_invcylinder;
-            db.HatchGradient(2, 6, HatchTools.HatchGradientName.gr_hemisperical,
-                db.AddEntityToModelSpace(new Rectangle(new Point3d(100, 100, 0), new Point3d(500, 300, 0))));
-        }
-
         /*
          * 插入一条直线/图形
          */

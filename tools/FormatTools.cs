@@ -2,7 +2,7 @@
 using System.Linq;
 
 
-namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
+namespace AutoCAD_2022_Plugin_Demo.tools
 {
 
     public class FormatTools
@@ -44,14 +44,6 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain
             else {
                 // 暂不考虑放大
             }
-
-            //// 缩放结束后当height=100时,显示100-100的长度大概是100
-            //// 需要按照长度二次缩放 统一缩放倍数,否则height0.2(极端情况)
-            // if(width <= 150) {
-            // double factor = width / 150;
-            // textHeight *= factor;
-            // textMargin *= factor;
-            // }
         }
 
     }
