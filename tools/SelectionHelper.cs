@@ -219,7 +219,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                     continue;
                 }
 
-                Point3d textPos = text.Position; // 文本对齐点坐标
+                Point3d textPos = text.AlignmentPoint; // 文本对齐点坐标
 
                 // ======================================
                 // 匹配 行索引（Y坐标：从上到下）
@@ -230,7 +230,8 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                     double topY = rowYs[r];
                     double bottomY = rowYs[r + 1];
 
-                    // 判断文本Y是否在当前行的上下边界内
+                    // 判断文本Y是否在当前行的上下边界内 
+
                     if(textPos.Y <= topY + tolerance && textPos.Y >= bottomY - tolerance) {
                         rowIndex = r;
                         break;

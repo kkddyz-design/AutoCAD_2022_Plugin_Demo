@@ -277,7 +277,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         }
 
 
-        [CommandMethod("DBTextToClipboard")]
+        [CommandMethod("CPDBTextToClipboard")]
         public static void GetDBTextClipboard()
         {
             // 0. 获取编辑器
