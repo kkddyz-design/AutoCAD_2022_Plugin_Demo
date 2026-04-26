@@ -160,6 +160,7 @@
     <Compile Include="WinFroms\SaveFileDialog.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".mcp.json" />
     <None Include="app.config" />
     <None Include="config\config.json" />
     <None Include="config\配置框架设计" />
