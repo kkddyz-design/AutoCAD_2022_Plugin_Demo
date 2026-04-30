@@ -219,7 +219,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                     continue;
                 }
 
-                Point3d textPos = text.AlignmentPoint; // 文本对齐点坐标
+                Point3d textPos = text.Position; // 文本对齐点坐标
 
                 // ======================================
                 // 匹配 行索引（Y坐标：从上到下）
