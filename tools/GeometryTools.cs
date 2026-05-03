@@ -386,13 +386,14 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             // 参数3：输出交点集合
             // 参数4：交点排序方式（0=无排序）
             // 参数5：求交公差（0=精确求交）
-            ray.IntersectWith(
-            circle,
-            Intersect.ExtendBoth,
-            intersectPoints,
-            0,
-            0
-            );
+            // ray.IntersectWith(
+            // circle,
+            // Intersect.ExtendBoth,
+            // intersectPoints,
+            // 0,
+            // 0
+            // );
+            ray.IntersectWith(circle, Intersect.ExtendBoth, intersectPoints, IntPtr.Zero, IntPtr.Zero);
 
             // 4. 处理交点结果
             if(intersectPoints.Count == 0) {
@@ -421,7 +422,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         public static Point3d[] GetIntersectionsBetween_Ray_Circle(
             Ray ray,
             Circle circle,
-            IComparer<Point3d>? comparer = null // 排序策略接口（可选参数）
+            IComparer<Point3d> comparer = null // 排序策略接口（可选参数）
         )
         {
             // 1. 参数校验
@@ -436,14 +437,15 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             // 2. 初始化交点集合
             Point3dCollection intersectPoints = new Point3dCollection();
 
-            // 3. 调用求交方法
-            ray.IntersectWith(
-                circle,
-                Intersect.ExtendBoth,
-                intersectPoints,
-                0,
-                0
-            );
+            // 3. 调用求交方法 -- 过时方法
+            // ray.IntersectWith(
+            // circle,
+            // Intersect.ExtendBoth,
+            // intersectPoints,
+            // 0,
+            // 0
+            // );
+            ray.IntersectWith(circle, Intersect.ExtendBoth, intersectPoints, IntPtr.Zero, IntPtr.Zero);
 
             // 4. 处理无交点情况
             if(intersectPoints.Count == 0) {

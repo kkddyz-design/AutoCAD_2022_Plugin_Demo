@@ -90,7 +90,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 int thick;
                 double rectH;
                 double rectL;
+
                 ConvertRectPlate(specStr, out material, out thick, out rectH, out rectL); // 解析规格，初始化变量
+
+                // 确保H<=L
+                double temp = 0;
+                if(rectH > rectL) {
+                    temp = rectH;
+                    rectH = rectL;
+                    rectL = temp;
+                }
                 Rect_Plate rect_Plate = new Rect_Plate(OD, rectH, rectL, thick, count, material);
 
                 // 如果不存在，加入字典；如果已经存在，累加数量,

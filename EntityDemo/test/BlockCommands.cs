@@ -4,7 +4,6 @@ using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
@@ -68,12 +67,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             }
         }
 
-        [CommandMethod("AddRectPlateDemo1")]
-        public static void AddRectPlateDemo1()
-        {
-            db.AddRectPlateToModelSpace(new Point3d(100, 100, 0), 34, 100, 200, 8, 22, string.Empty);
-            db.AddRectPlateToModelSpace(new Point3d(300, 300, 0), 34, 100, 200, 8, 22, "不锈钢");
-        }
+        // [CommandMethod("AddRectPlateDemo1")]
+        // public static void AddRectPlateDemo1()
+        // {
+        // db.AddRectPlateToModelSpace(new Point3d(100, 100, 0), 34, 100, 200, 8, 22, string.Empty);
+        // db.AddRectPlateToModelSpace(new Point3d(300, 300, 0), 34, 100, 200, 8, 22, "不锈钢");
+        // }
 
 
         [CommandMethod("AddRectPlate")]
