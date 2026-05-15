@@ -339,38 +339,52 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         #endregion
 
         #region 块表
-        /// <summary>
-        /// 添加块表记录
-        /// </summary>
+
+
         /// <param name="db">数据库</param>
         /// <param name="btrName">块表名</param>
         /// <param name="entityList">块中的实体对象</param>
         /// <returns>ObjectId</returns>
+        /// <param name="db">数据库</param>
+        /// <param name="btrName">块定义名称</param>
+        /// <param name="entityList">块包含的实体</param>
+        /// <returns>块定义ObjectId</returns>
+
         public static ObjectId AddBlockTableRecord(this Database db, string btrName, List<Entity> entityList)
         {
             ObjectId btrId = ObjectId.Null;
 
+            // 开启事务
             using(Transaction trans = db.TransactionManager.StartTransaction()) {
-                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForWrite) as BlockTable;
-                BlockTableRecord btr = new BlockTableRecord();
+                // 以【读模式】打开块表（规范写法，避免直接写模式占用资源）
+                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
 
-                if(!bt.Has(btrName)) {
-                    // 1. 创建新的块表记录（块定义）
-                    btr.Name = btrName;         // 必须给块命名（否则块表无法识别）
-                    btr.Origin = Point3d.Origin;// 块原点（默认设为(0,0,0)，方便插入定位）
-                    // btr中的Entity位置都是相对于btr.Origin
-                    // 插入块参照时,btr.Origin = position(入参)
+                // ==============================================
+                // 核心逻辑：判断块定义是否已存在
+                // ==============================================
+                if(bt.Has(btrName)) {
+                    // ✅ 块已存在：直接获取已有的块定义ID，返回
+                    btrId = bt[btrName];
+                }
+                else {
+                    // ❌ 块不存在：创建新的块定义
+                    bt.UpgradeOpen(); // 切换为写模式
+                    BlockTableRecord btr = new BlockTableRecord();
 
-                    // 2. 遍历实体列表，添加到块中
-                    for(int i = 0; i < entityList.Count; i++) {
-                        // 将单个实体（如矩形、文字、属性定义）“添加到块表记录的实体集合中”，建立 “块→实体” 的归属关系
-                        btr.AppendEntity(entityList[i]);
+                    btr.Name = btrName;
+                    btr.Origin = Point3d.Origin;
+
+                    // 添加实体到块定义
+                    foreach(Entity ent in entityList) {
+                        btr.AppendEntity(ent);
                     }
 
-                    // 3. 将新块表记录添加到块表
-                    btrId = bt.Add(btr); // 把块添加到块表，返回块的ObjectId
-                    trans.AddNewlyCreatedDBObject(btr, true); // 注册块表记录到数据库
+                    // 添加到块表并注册到数据库
+                    btrId = bt.Add(btr);
+                    trans.AddNewlyCreatedDBObject(btr, true);
                 }
+
+                // 提交事务（无论是否新建块，都提交）
                 trans.Commit();
             }
 

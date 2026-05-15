@@ -43,13 +43,25 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         }
 
 
-        public static void AddRectPlateToModelSpaceByExcel(this Database db)
+        public static void AddRectPlateToModelSpaceByExcel(this Database db, Editor ed)
         {
             // 选择文件
 
             string filePath = FileTools.OpenFileWithSheetSelect();
 
             string[] paths = filePath.Split('|');
+
+            // 校验1：用户直接取消 / 未选择任何文件
+            if(string.IsNullOrWhiteSpace(filePath)) {
+                ed.WriteMessage("\n 未选择文件，操作终止。");
+                return;
+            }
+
+            // 校验2：拆分后路径数组无效（异常情况）
+            if(paths == null || paths.Length == 0) {
+                ed.WriteMessage("\n 文件路径无效，操作终止。");
+                return;
+            }
 
             // 读取文件数据
             List<List<string>> excelData = FileTools.ReadExcelData(paths[0], paths[1]);
@@ -446,8 +458,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             double rectH = 0, rectL = 0;
             int thick = 0, count = 0;
 
-            // 在 ParseCommandArgs 方法里解析出 89、100，然后把这两个数字赋值给外面的 rectH 和 rectL。
-            bool hasVaildGrgs = ParseCommandArgs(ed, ref rectH, ref rectL, ref thick, ref count);
+            // 在 ParseCommandArgs_RECW 方法里解析出 89、100，然后把这两个数字赋值给外面的 rectH 和 rectL。
+            bool hasVaildGrgs = ParseCommandArgs_RECW(ed, ref rectH, ref rectL, ref thick, ref count);
 
             if(hasVaildGrgs) {
                 ed.WriteMessage($"成功获取到参数rectH:{rectH},rectL{rectL}");
@@ -456,7 +468,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 Rect_Plate plateWithInfo = new Rect_Plate(rectH, rectL, thick, count);
 
                 // 创建块定义
-                string btrName = $"PlateWithInfo_t10_n8_{rectH}_{rectL}";
+                string btrName = $"PlateWithInfo_{rectH}_{rectL}_{thick}_{count}";
                 ObjectId btrId = db.AddBlockTableRecord(btrName, plateWithInfo.entityList);
 
                 // 创建块参照
@@ -516,7 +528,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 double rectH = 0, rectL = 0;
                 int thick = 0, count = 0;
 
-                bool hasVaildGrgs = ParseCommandArgs(ed, ref rectH, ref rectL, ref thick, ref count);
+                bool hasVaildGrgs = ParseCommandArgs_RECW(ed, ref rectH, ref rectL, ref thick, ref count);
 
                 if(!hasVaildGrgs) {
                     ed.WriteMessage("\n未获取到合法参数！");
@@ -555,14 +567,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         #region AddRectWithInfoFromCmd的工具方法
 
         /// <summary>
-        /// 解析命令行参数（如 addr 89-100 → 长89 宽100）
+        /// 解析命令行参数,专门用于
         /// </summary>
-        private static bool ParseCommandArgs(Editor ed, ref double len, ref double wid, ref int thick, ref int count)
+        private static bool ParseCommandArgs_RECW(Editor ed, ref double len, ref double wid, ref int thick, ref int count)
         {
             // 1. 获取用户输入
-            // 提示语更新，说明支持 '-' 或 '空格'
+            // 提示语更新，说明支持 '-' 或 '空格'，同时说明3参数默认数量为0
             PromptStringOptions strOpts = new PromptStringOptions(
-                "\n请输入参数 (格式: 长 宽 厚 数量) 或 (长-宽-厚-数量): ");
+                "\n请输入参数 (格式: H L 厚度 数量) 或 (H-L-厚度-数量)\n输入3个参数时，数量默认=0: ");
             strOpts.AllowSpaces = true;
 
             PromptResult res = ed.GetString(strOpts);
@@ -578,22 +590,22 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 return false;
             }
 
-            // 2. 解析参数 (关键修改部分)
+            // 2. 解析参数
             // 定义分隔符：横杠和空格
             char[] separators = new char[] { '-', ' ' };
 
             // 使用 RemoveEmptyEntries 防止因连续空格或两端空格导致的空字符串错误
             string[] parts = userInput.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
-            // 必须严格等于 4 个参数
-            if(parts.Length != 4) {
-                ed.WriteMessage("\n 格式错误：请输入 4 个参数 (长 宽 厚 数量)，可用空格或横杠分隔。");
+            // 允许 3 个 或 4 个参数，其他数量报错
+            if(parts.Length != 3 && parts.Length != 4) {
+                ed.WriteMessage("\n 格式错误：请输入 3 个参数(长 宽 厚) 或 4 个参数(长 宽 厚 数量)，可用空格或横杠分隔。");
                 return false;
             }
 
             // 3. 尝试转换并校验数值
             double tempLen, tempWid;
-            int tempThick, tempCount;
+            int tempThick, tempCount = 0; // 默认数量=0
 
             // 参数 1: 长 (double)
             if(!double.TryParse(parts[0], out tempLen) || tempLen <= 0) {
@@ -613,11 +625,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 return false;
             }
 
-            // 参数 4: 数量 (int)
-            if(!int.TryParse(parts[3], out tempCount) || tempCount <= 0) {
-                ed.WriteMessage("\n 错误：第四个参数(数量)必须是大于0的整数。");
-                return false;
+            // 参数 4: 数量 (int) —— 只有输入4个参数时才解析
+            if(parts.Length == 4) {
+                if(!int.TryParse(parts[3], out tempCount) || tempCount < 0) // 允许数量=0
+                {
+                    ed.WriteMessage("\n 错误：第四个参数(数量)必须是大于等于0的整数。");
+                    return false;
+                }
             }
+
+            // 输入3个参数：tempCount 保持默认值 0
 
             // 4. 赋值给 ref 参数
             len = tempLen;

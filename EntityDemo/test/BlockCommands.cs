@@ -22,7 +22,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
     {
 
         private static Database db = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument.Database;
-
+        private static Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
 
         [CommandMethod("WriteToTXT")]
         public static void WriteToTXT()
@@ -67,18 +67,11 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             }
         }
 
-        // [CommandMethod("AddRectPlateDemo1")]
-        // public static void AddRectPlateDemo1()
-        // {
-        // db.AddRectPlateToModelSpace(new Point3d(100, 100, 0), 34, 100, 200, 8, 22, string.Empty);
-        // db.AddRectPlateToModelSpace(new Point3d(300, 300, 0), 34, 100, 200, 8, 22, "不锈钢");
-        // }
-
 
         [CommandMethod("AddRectPlate")]
         public static void AddRectPlateDemo2()
         {
-            db.AddRectPlateToModelSpaceByExcel();
+            db.AddRectPlateToModelSpaceByExcel(ed);
         }
 
         [CommandMethod("AddLeiBan")]
@@ -321,6 +314,52 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             catch(System.Exception e) {
                 ed.WriteMessage("用户未选择任何文本");
             }
+        }
+
+
+        [CommandMethod("GetTextFromExcel")]
+        public static void TestGetText()
+        {
+            // 1. 获取 CAD 编辑器（用于输出文本）
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+
+            try {
+                // 2. 从剪贴板读取 Excel 表格数据（二维List）
+                List<List<string>> excelTable = ClipboardTools.ReadFromExcelClipboard();
+
+                // 3. 判断是否读到数据
+                if(excelTable == null || excelTable.Count == 0) {
+                    ed.WriteMessage("\n剪贴板中没有 Excel 格式数据！");
+                    return;
+                }
+
+                // 4. 遍历输出（核心遍历方法）
+                ed.WriteMessage($"\n===== 从剪贴板读取到 {excelTable.Count} 行数据 =====\n");
+
+                // 遍历每一行
+                for(int rowIndex = 0; rowIndex < excelTable.Count; rowIndex++) {
+                    List<string> row = excelTable[rowIndex];
+
+                    // 拼接当前行的所有单元格（用 | 分隔，方便查看）
+                    string rowText = $"第 {rowIndex + 1} 行：{string.Join(" | ", row)}";
+
+                    // 输出到 CAD 命令行
+                    ed.WriteMessage($"\n{rowText}");
+                }
+
+                ed.WriteMessage("\n===== 读取并输出完成 =====");
+            }
+            catch(System.Exception ex) {
+                ed.WriteMessage($"\n读取失败：{ex.Message}");
+            }
+        }
+
+
+        [CommandMethod("DrawReactWithInfo")]
+        public static void DrawReactWithInfo()
+        {
+            // 1. 将δ6=144*300 解析为 int thick = 6,double H = 144,double L = 300
         }
 
     }

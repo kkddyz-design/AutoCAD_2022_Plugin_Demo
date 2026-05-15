@@ -155,12 +155,12 @@
     <Compile Include="interactionDemo\MyCommand.cs" />
     <Compile Include="interactionDemo\Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="tools\PraseTools.cs" />
     <Compile Include="tools\PromptTools.cs" />
     <Compile Include="tools\SelectionHelper.cs" />
     <Compile Include="WinFroms\SaveFileDialog.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".mcp.json" />
     <None Include="app.config" />
     <None Include="config\config.json" />
     <None Include="config\配置框架设计" />
