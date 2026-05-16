@@ -312,6 +312,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
                 ClipboardTools.CopyToExcelClipboard(stringTable);
             }
             catch(System.Exception e) {
+                e.GetBaseException();
                 ed.WriteMessage("用户未选择任何文本");
             }
         }
