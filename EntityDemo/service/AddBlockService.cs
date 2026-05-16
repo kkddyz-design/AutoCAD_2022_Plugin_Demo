@@ -569,7 +569,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
         /// <summary>
         /// 解析命令行参数,专门用于
         /// </summary>
-        private static bool ParseCommandArgs_RECW(Editor ed, ref double len, ref double wid, ref int thick, ref int count)
+        private static bool ParseCommandArgs_RECW(Editor ed, ref double height, ref double width, ref int thick, ref int count)
         {
             // 1. 获取用户输入
             // 提示语更新，说明支持 '-' 或 '空格'，同时说明3参数默认数量为0
@@ -604,18 +604,18 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             }
 
             // 3. 尝试转换并校验数值
-            double tempLen, tempWid;
+            double tempHeight, tempWidth;
             int tempThick, tempCount = 0; // 默认数量=0
 
-            // 参数 1: 长 (double)
-            if(!double.TryParse(parts[0], out tempLen) || tempLen <= 0) {
-                ed.WriteMessage("\n 错误：第一个参数(长)必须是大于0的数字。");
+            // 参数 1: height
+            if(!double.TryParse(parts[0], out tempHeight) || tempHeight <= 0) {
+                ed.WriteMessage("\n 错误：第一个参数(height)必须是大于0的数字。");
                 return false;
             }
 
-            // 参数 2: 宽 (double)
-            if(!double.TryParse(parts[1], out tempWid) || tempWid <= 0) {
-                ed.WriteMessage("\n 错误：第二个参数(宽)必须是大于0的数字。");
+            // 参数 2: width
+            if(!double.TryParse(parts[1], out tempWidth) || tempWidth <= 0) {
+                ed.WriteMessage("\n 错误：第二个参数(width)必须是大于0的数字。");
                 return false;
             }
 
@@ -637,8 +637,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
             // 输入3个参数：tempCount 保持默认值 0
 
             // 4. 赋值给 ref 参数
-            len = tempLen;
-            wid = tempWid;
+            height = tempHeight;
+            width = tempWidth;
             thick = tempThick;
             count = tempCount;
 

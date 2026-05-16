@@ -1,5 +1,4 @@
 ﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.entity;
-using AutoCAD_2022_Plugin_Demo.tools;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
@@ -18,6 +17,14 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
 
         public string Rect_Plate_Material { get; set; }
 
+        /// <summary>
+        /// 实体对应的是Rect_Plate_Name,对于每个实体是唯一的；使用BlockName
+        /// </summary>
+        //public string Rect_Plate_Name { get; set; }
+
+        /// <summary>
+        /// Tag是专门用于汇总相同规格的实体的。
+        /// </summary>
         public string Tag { get; set; }
 
 
@@ -29,12 +36,12 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
         /// <summary>
         /// 用于cmd创建带有info的rect对象,仅 输入double rectH, double rectL, int thick, int count
         /// </summary>
-        public Rect_Plate(double rectH, double rectL, int thick, int count) : this(11451, rectH, rectL, thick, count, "碳钢")
+        public Rect_Plate(double rectH, double rectL, int thick, int count) : this(000000, rectH, rectL, thick, count, "碳钢")
         {
         }
 
         /// <summary>
-        /// 矩形下料
+        /// 方板
         /// </summary>
         /// <param name="rectL">矩形宽度</param>
         /// <param name="rectH">矩形高度</param>
@@ -55,10 +62,16 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             double textMargin = 10;
 
             // 当height<100,按比例缩放字体大小
-            FormatTools.ScaleTextHeightAndMargin(rectH, rectL, ref textHeight, ref textMargin);
+            // FormatTools.ScaleTextHeightAndMargin(rectH, rectL, ref textHeight, ref textMargin);
+
+            long timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            string shortId = timestamp.ToString().Substring(0, 12);
+
+            // 设置name 
+            BlockName = $"RectWithInfo_{material}_管径{od}_H{rectH}_L{rectL}_T{thick}_N{count}_UID:{shortId}";
 
             // 设置Tag
-            Tag = $"方板_{material}_管径{od}_H{rectH}_L{rectL}_厚{thick}";
+            Tag = $"RectWithInfo_{material}_管径{od}_H{rectH}_L{rectL}_厚{thick}";
 
             // 设置count
             DBText countText = new DBText(); // 确保初始化设置时,countText不为空
@@ -101,10 +114,15 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block
             entityList.Add(thickText);
             entityList.Add(countText);
 
-            // 设置特殊材质颜色
-            // 特殊材质-设置颜色
-            if(!material.Equals("碳钢")) {
+            // 设置材质颜色,合金黄色,不锈钢洋红色
+            if(material.Contains("合金")) {
+                entityList.SetEntityListColor(3);
+            }
+            else if(material.Equals("不锈钢")) {
                 entityList.SetEntityListColor(6);
+            }
+            else {
+                // 碳钢默认白色不用设置
             }
 
             // 插入点以左上角，但是定义的Rect对象是以左下角为基点创建对象的

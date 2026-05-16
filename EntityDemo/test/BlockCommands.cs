@@ -1,9 +1,13 @@
-﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
+﻿using AutoCAD_2022_Plugin_Demo.EntityDemo.domain.block;
+using AutoCAD_2022_Plugin_Demo.EntityDemo.service;
 using AutoCAD_2022_Plugin_Demo.EntityDemo.test;
 using AutoCAD_2022_Plugin_Demo.tools;
+using AutoCAD_2022_Plugin_Demo.tools.jig;
+using AutoCAD_2022_Plugin_Demo.tools.layout;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
@@ -356,11 +360,105 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
             }
         }
 
-
-        [CommandMethod("DrawReactWithInfo")]
+        /// <summary>
+        /// 通过拷贝excel内容，直接生成可拖拽的多个块参照,考虑兼容性，只绘制没有数量的图形。
+        /// </summary>
+        [CommandMethod("DrawRectWithInfoByExcel")]
         public static void DrawReactWithInfo()
         {
-            // 1. 将δ6=144*300 解析为 int thick = 6,double H = 144,double L = 300
+            // 1. 获取 CAD 编辑器（用于输出文本）
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+
+            try {
+                // 2. 从剪贴板读取 Excel 表格数据（二维List）
+                List<List<string>> excelTable = ClipboardTools.ReadFromExcelClipboard();
+
+                // 3. 判断是否读到数据
+                if(excelTable == null || excelTable.Count == 0) {
+                    ed.WriteMessage("\n剪贴板中没有 Excel 格式数据！");
+                    return;
+                }
+
+                // 4. 遍历输出（核心遍历方法）
+                ed.WriteMessage($"\n===== 从剪贴板读取到 {excelTable.Count} 行数据 =====\n");
+
+                string material = string.Empty;
+                int thick = 0;
+                double width = 0, height = 0;
+
+                List<Rect_Plate> rect_Plates = new List<Rect_Plate>();
+                List<BlockReference> blockReferences = new List<BlockReference>();
+
+                // 遍历创建实体
+                for(int rowIndex = 0; rowIndex < excelTable.Count; rowIndex++) {
+                    List<string> row = excelTable[rowIndex];
+
+                    // 拼接当前行的所有单元格（用 | 分隔，方便查看）
+                    string rowText = $"第 {rowIndex + 1} 行：{string.Join(" | ", row)}";
+
+                    // 输出到 CAD 命令行
+                    ed.WriteMessage($"\n{rowText}");
+
+                    // 调用PraseTools，将规格解析为块定义
+                    PraseTools.ParseRectPlateSpec(row[0], out  material, out thick, out width, out height);
+
+                    // 创建实体类
+                    Rect_Plate rect_Plate = new Rect_Plate(114, height, width, thick, 0, material);// 默认od是114
+                    // 加入列表
+                    rect_Plates.Add(rect_Plate);
+                }
+
+                // 布局类排序
+                RectPlateLayout.VerticalLayoutTopToBottom(rect_Plates);
+
+                foreach(Rect_Plate plate in rect_Plates) {
+                    // 创建块参照
+                    ObjectId btrId = db.AddBlockTableRecord(plate.BlockName, plate.entityList);
+                    BlockReference br_plateWithInfo = new BlockReference(plate.BlockPosition, btrId);
+
+                    // 加入块参照列表
+                    blockReferences.Add(br_plateWithInfo);
+                }
+
+                // 调用Jig类
+
+                // 1. 直接实例化，不需要 using
+                MultipleBlocksDragJig jig = new MultipleBlocksDragJig(blockReferences, new Point3d(0, 0, 0));
+
+                // 2. 执行拖拽
+                PromptResult result = ed.Drag(jig);
+
+                // 3. 结果处理
+                if(result.Status == PromptStatus.OK) {
+                    // 真正把块移动到用户选择的点
+                    jig.UpdateBlockPositions();
+
+                    // 用户确认：批量插入所有块参照
+                    using(Transaction trans = db.TransactionManager.StartTransaction()) {
+                        // 获取当前空间（模型空间）
+                        BlockTableRecord btr = trans.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+
+                        // 遍历所有块，一次性全部插入数据库
+                        foreach(BlockReference br in blockReferences) {
+                            btr.AppendEntity(br);
+                            trans.AddNewlyCreatedDBObject(br, true);
+                        }
+
+                        trans.Commit();
+                    }
+                    ed.WriteMessage($"\n插入成功！共插入 {blockReferences.Count} 个块！");
+                }
+                else {
+                    // 用户取消：不插入任何对象
+                    ed.WriteMessage("\n已取消。");
+                }
+
+                ed.WriteMessage("\n===== 读取并输出完成 =====");
+            }
+            catch(System.Exception ex) {
+                ed.WriteMessage($"\n读取失败：{ex.Message}");
+            }
         }
 
     }

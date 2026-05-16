@@ -11,7 +11,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
 {
 
     /// <summary>
-    /// 系统剪贴板工具类（CAD专用） 包含：Excel格式数据复制、通用文本复制、空值安全处理
+    /// 系统剪贴板工具类,用于在  内存 -- Clipboard -- Excel之间进行数据交互
     /// </summary>
     public static class ClipboardTools
     {
@@ -36,25 +36,6 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         }
 
         /// <summary>
-        /// CAD兼容的剪贴板文本设置（STA线程）
-        /// </summary>
-        public static void SetTextSafe(string text)
-        {
-            if(string.IsNullOrWhiteSpace(text)) {
-                throw new ArgumentNullException(nameof(text), "剪贴板写入失败：没有可复制的有效内容！");
-            }
-
-            Thread staThread = new Thread(() =>
-                {
-                    Clipboard.SetText(text);
-                });
-            staThread.SetApartmentState(ApartmentState.STA);
-            staThread.Start();
-            staThread.Join();
-        }
-
-
-        /// <summary>
         /// 从剪贴板读取 Excel 复制的数据，自动按 \t 分列、\r\n 分行，转为二维字符串列表
         /// </summary>
         /// <returns>二维字符串列表 List&lt;List&lt;string&gt;&gt;</returns>
@@ -73,6 +54,26 @@ namespace AutoCAD_2022_Plugin_Demo.tools
             catch(Exception ex) {
                 throw new InvalidOperationException("从剪贴板读取Excel格式数据失败", ex);
             }
+        }
+
+
+        #region 私有方法
+        /// <summary>
+        /// CAD兼容的剪贴板文本设置（STA线程）
+        /// </summary>
+        private static void SetTextSafe(string text)
+        {
+            if(string.IsNullOrWhiteSpace(text)) {
+                throw new ArgumentNullException(nameof(text), "剪贴板写入失败：没有可复制的有效内容！");
+            }
+
+            Thread staThread = new Thread(() =>
+                {
+                    Clipboard.SetText(text);
+                });
+            staThread.SetApartmentState(ApartmentState.STA);
+            staThread.Start();
+            staThread.Join();
         }
 
 
@@ -103,7 +104,7 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         /// 【新增】CAD兼容的剪贴板文本读取（STA线程）
         /// </summary>
         /// <returns>剪贴板文本</returns>
-        public static string GetTextSafe()
+        private static string GetTextSafe()
         {
             string result = string.Empty;
             Thread staThread = new Thread(() =>
@@ -159,5 +160,6 @@ namespace AutoCAD_2022_Plugin_Demo.tools
         }
 
     }
+    #endregion
 
 }
