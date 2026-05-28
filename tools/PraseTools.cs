@@ -77,30 +77,27 @@ namespace AutoCAD_2022_Plugin_Demo.tools
                     // return false; 
                 }
 
-                double tempH = 0, tempW = 0;
-
-                // 确保 width >= height，如果 height 更大，则交换两者的值
-                if(tempH > tempW) {
-                    width = tempH;
-                    height = tempW;
-                }
-                else {
-                    width = tempW;
-                    height = tempH;
-                }
-
                 // 4. 解析尺寸（按 '*' 分割）
                 string[] dimensions = rightPart.Split(new[] { '*' }, StringSplitOptions.RemoveEmptyEntries);
                 if(dimensions.Length != 2) {
                     return false;
                 }
 
-                if(!double.TryParse(dimensions[0].Trim(), out width) || width <= 0) {
+                if(!double.TryParse(dimensions[0].Trim(), out height) || height <= 0) {
                     return false;
                 }
 
-                if(!double.TryParse(dimensions[1].Trim(), out height) || height <= 0) {
+                if(!double.TryParse(dimensions[1].Trim(), out width) || width <= 0) {
                     return false;
+                }
+
+                // 确保实际绘图的H<W
+                double tempH = height, tempW = width;
+
+                // 确保 width >= height，如果 height 更大，则交换两者的值
+                if(tempH > tempW) {
+                    width = tempH;
+                    height = tempW;
                 }
 
                 // 所有校验通过

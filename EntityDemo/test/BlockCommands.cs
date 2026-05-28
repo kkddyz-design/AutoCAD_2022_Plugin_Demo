@@ -402,7 +402,7 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
                     ed.WriteMessage($"\n{rowText}");
 
                     // 调用PraseTools，将规格解析为块定义
-                    PraseTools.ParseRectPlateSpec(row[0], out  material, out thick, out width, out height);
+                    PraseTools.ParseRectPlateSpec(row[0], out  material, out thick, out height, out width);
 
                     // 创建实体类
                     Rect_Plate rect_Plate = new Rect_Plate(114, height, width, thick, 0, material);// 默认od是114
