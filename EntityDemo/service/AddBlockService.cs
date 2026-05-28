@@ -278,8 +278,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.service
                 double upperDistance = double.Parse(rowData[8]);
                 int cnt = int.Parse(rowData[9]);
 
-                double textHeight = 14;
-                double textMargin = 10;
+                double textHeight = 20;
+                double textMargin = 14;
 
                 // rib_plate对象
                 Rib_Plate rib_Plate = new Rib_Plate(tag, OD, H, material, offset, rectSpec, ribPlateThick,

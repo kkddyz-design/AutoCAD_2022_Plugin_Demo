@@ -363,7 +363,8 @@ namespace AutoCAD_2022_Plugin_Demo.EntityDemo.test
         /// <summary>
         /// 通过拷贝excel内容，直接生成可拖拽的多个块参照,考虑兼容性，只绘制没有数量的图形。
         /// </summary>
-        [CommandMethod("DrawRectWithInfoByExcel")]
+        [CommandMethod("CopyRectFromExcel")]
+        [CommandMethod("CRFE")]
         public static void DrawReactWithInfo()
         {
             // 1. 获取 CAD 编辑器（用于输出文本）
